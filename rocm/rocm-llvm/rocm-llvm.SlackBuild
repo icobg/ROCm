@@ -1,0 +1,98 @@
+#!/bin/bash
+
+read -p "Supporting only x86-64 version!"
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+cd $ROCM_REL_DIR
+PRGNAM=llvm-project
+
+if [ -d $ROCM_REL_DIR/$PRGNAM ]; then
+    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git checkout ${ROCM_BRANCH} )
+else
+    ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/llvm-project.git )
+fi
+
+cd llvm-project
+
+patch -Np1 -i $CWD/../../patches/130334.diff
+patch -Np1 -i $CWD/../../patches/platform_limits_posix.patch
+
+rm -rf $ROCM_BUILD_DIR/llvm-amdgpu
+mkdir -p $ROCM_BUILD_DIR/llvm-amdgpu
+cd $ROCM_BUILD_DIR/llvm-amdgpu
+
+DEST=$OUTPUT/package-rocm-llvm
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+BUILD=1
+
+rm -rf $DEST
+
+pushd .
+
+# does not work, ROCm does not support lib64 oficial yet
+#    -DLLVM_LIBDIR_SUFFIX="64" \
+#    -DMLIR_ENABLE_VULKAN_RUNNER=ON \
+#    -DMLIR_ENABLE_ROCM_RUNNER=ON \
+
+
+cmake \
+    -Wno-dev \
+    -DCLANG_ENABLE_AMDCLANG=ON \
+    -DCLANG_DEFAULT_LINKER=lld \
+    -DCLANG_DEFAULT_RTLIB=compiler-rt \
+    -DCLANG_DEFAULT_UNWINDLIB=libgcc \
+    -DCLANG_INCLUDE_TESTS=OFF \
+    -DCLANG_LINK_FLANG_LEGACY=ON \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_STANDARD=17 \
+    -DCMAKE_INSTALL_PREFIX="${ROCM_INSTALL_DIR}/lib/llvm" \
+    -DGPU_TARGETS=$AMDGPU_TARGETS \
+    -DGPU_BUILD_TARGETS=$AMDGPU_TARGETS \
+    -DLLVM_ENABLE_PROJECTS='llvm;clang;lld;clang-tools-extra;mlir;flang' \
+    -DLLVM_ENABLE_RUNTIMES='compiler-rt;libcxx;libcxxabi;libunwind' \
+    -DLLVM_TARGETS_TO_BUILD='AMDGPU;X86' \
+    -DLLVM_INSTALL_UTILS=ON \
+    -DLLVM_LINK_LLVM_DYLIB=OFF \
+    -DLLVM_BUILD_LLVM_DYLIB=OFF \
+    -DLLVM_ENABLE_ASSERTIONS=ON \
+    -DLLVM_ENABLE_OCAMLDOC=OFF \
+    -DLLVM_INCLUDE_BENCHMARKS=OFF \
+    -DLLVM_BUILD_TESTS=OFF \
+    -DLLVM_INCLUDE_DOCS=OFF \
+    -DLLVM_INCLUDE_EXAMPLES=OFF \
+    -DLLVM_INCLUDE_TESTS=OFF \
+    -DLLVM_BUILD_DOCS=OFF \
+    -DLLVM_ENABLE_SPHINX=OFF \
+    -DLLVM_ENABLE_ASSERTIONS=OFF \
+    -DLLVM_ENABLE_Z3_SOLVER=OFF \
+    -DLLVM_BINUTILS_INCDIR=/usr/include \
+    -DLLVM_ENABLE_ZLIB=ON \
+    -DLIBCXX_ENABLE_STATIC=ON \
+    -DLIBCXXABI_ENABLE_STATIC=ON \
+    -DSANITIZER_AMDGPU=OFF \
+    -DPACKAGE_VENDOR=AMD \
+    -G Ninja \
+    $ROCM_REL_DIR/$PRGNAM/llvm
+
+"${NINJA:=ninja}" $NUMJOBS || exit 1
+DESTDIR=$DEST "$NINJA" install/strip || exit 1
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+#mkdir -p opt/rocm/lib/llvm/lib/bfd-plugins
+#ln -s /opt/rocm/lib/llvm/lib/LLVMgold.so $DEST/opt/rocm/lib/llvm/lib/bfd-plugins/LLVMgold.so
+( cd $DEST/opt/rocm && ln -s lib/llvm llvm )
+( mkdir -p $DEST/opt/rocm/bin && cd $DEST/opt/rocm/bin && ln -sf ../lib/llvm/bin/amdclang++ . && ln -sf ../lib/llvm/bin/amdclang .)
+# Fix rpath to avoid error when running amdclang and friends
+# (error while loading shared libraries: libunwind.so.1: cannot open shared object file: No such file or directory)
+#patchelf --set-rpath '$ORIGIN' "$DEST/opt/rocm/lib/llvm/lib/libc++abi.so"
+
+makepkg -l y -c n $OUTPUT/rocm-$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd

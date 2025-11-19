@@ -1,0 +1,12 @@
+rocm-llvm
+rocm-device-libs
+rocm-cmake
+rocm-comgr
+clr
+MIOpen
+hipBLAS-common
+hipBLASLt
+AMDMIGraphX
+rocBLAS
+rpp
+ROCR-Runtime

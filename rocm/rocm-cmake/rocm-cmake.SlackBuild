@@ -1,0 +1,47 @@
+#!/bin/bash
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+cd $ROCM_REL_DIR
+PRGNAM=rocm-cmake
+
+
+if [ -d $ROCM_REL_DIR/$PRGNAM ]; then
+    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git checkout ${ROCM_BRANCH} )
+else
+    ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/rocm-cmake.git )
+fi
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+BUILD=1
+DEST=$OUTPUT/package-$PRGNAM
+rm -rf $DEST
+
+pushd .
+
+cmake \
+    -G Ninja \
+    -Wno-dev \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/lib/llvm/bin/amdclang++ \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/lib/llvm/bin/amdclang \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
+    $ROCM_REL_DIR/$PRGNAM
+
+"${NINJA:=ninja}" $NUMJOBS || exit 1
+DESTDIR=$DEST "$NINJA" install || exit 1
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd
+

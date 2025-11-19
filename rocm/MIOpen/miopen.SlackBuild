@@ -1,0 +1,56 @@
+#!/bin/bash
+
+read -p "| Require 2 hours |"
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+PRGNAM=MIOpen
+cd $ROCM_REL_DIR
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+pushd .
+
+DEST=$OUTPUT/package-$PRGNAM
+rm -rf $DEST
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+BUILD=1
+
+cmake \
+    -Wno-dev \
+    -G Ninja \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/hipcc \
+    -D CMAKE_CXX_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/hipcc \
+    -D CMAKE_C_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
+    -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D MIOPEN_BACKEND=HIP \
+    -D MIOPEN_INSTALL_CXX_HEADERS=ON \
+    -D HALF_INCLUDE_DIR=${ROCM_INSTALL_DIR}/include/half \
+    -D MIOPEN_ENABLE_AI_KERNEL_TUNING=OFF \
+    -D MIOPEN_ENABLE_AI_IMMED_MODE_FALLBACK=OFF \
+    -D BUILD_TESTING=NO \
+    -D Boost_USE_STATIC_LIBS=NO \
+    $ROCM_LIBRARIES_DIR/${PRGNAM,,}
+
+"${NINJA:=ninja}" $NUMJOBS || exit 1
+DESTDIR=$DEST "$NINJA" install/strip || exit 1
+
+# Does not work on some GPU
+#    -D GPU_BUILD_TARGETS=${AMDGPU_TARGETS} \
+#    -D GPU_TARGETS=${AMDGPU_TARGETS} \
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd

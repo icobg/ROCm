@@ -1,0 +1,55 @@
+#!/bin/bash
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+cd $ROCM_REL_DIR
+PRGNAM=rpp
+
+if [ -d $ROCM_REL_DIR/$PRGNAM ]; then
+    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git checkout ${ROCM_BRANCH} )
+else
+    ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/rpp.git )
+fi
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+pushd .
+
+DEST=$OUTPUT/package-$PRGNAM
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+BUILD=1
+
+cmake \
+    -Wno-dev \
+    -G Ninja \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+    -D CMAKE_CXX_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
+    -D CMAKE_C_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
+    -D BUILD_TESTING=OFF \
+    -D BUILD_WITH_AMD_ADVANCE=ON \
+    -D OpenMP_CXX_FLAGS="-fopenmp -Wno-unused-command-line-argument" \
+    -D OpenMP_CXX_LIB_NAMES="libomp;libgomp;libiomp5" \
+    -D OpenMP_libomp_LIBRARY="/opt/rocm/lib64/libomp.so" \
+    -D OpenMP_libgomp_LIBRARY="/opt/rocm/lib64/libgomp.so" \
+    -D OpenMP_libiomp5_LIBRARY="/opt/rocm/lib64/libiomp5.so" \
+    $ROCM_REL_DIR/$PRGNAM
+
+"${NINJA:=ninja}" $NUMJOBS || exit 1
+DESTDIR=$DEST "$NINJA" install/strip || exit 1
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd

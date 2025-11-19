@@ -1,0 +1,19 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.
+# Line up the first '|' above the ':' following the base package name, and
+# the '|' on the right side marks the last column you can put a character in.
+# You must make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':' except on otherwise blank lines.
+
+         |-----handy-ruler------------------------------------------------------|
+hipBLASLt: hipBLASLt (hipBLASLt)
+hipBLASLt:
+hipBLASLt: General matrix-matrix operations beyond a traditional BLAS library
+hipBLASLt: hipBLASLt is exposed APIs in HIP programming language with an
+hipBLASLt: an underlying optimized generator as a backend kernel provider.
+hipBLASLt:
+hipBLASLt: This library adds flexibility in matrix data layouts, input types,
+hipBLASLt: compute types, and also in choosing the algorithmic implementations
+hipBLASLt: and heuristics through parameter programmability. 
+hipBLASLt:
+hipBLASLt:

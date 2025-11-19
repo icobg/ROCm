@@ -1,0 +1,7 @@
+rocm-llvm
+rocm_comgr
+rocr-runtime
+rocm-cmake
+hip
+clr
+rocm_smi_lib

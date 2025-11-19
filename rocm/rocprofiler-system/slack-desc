@@ -1,0 +1,19 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.
+# Line up the first '|' above the ':' following the base package name, and
+# the '|' on the right side marks the last column you can put a character in.
+# You must make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':' except on otherwise blank lines.
+
+                   |-----handy-ruler------------------------------------------------------|
+rocprofiler-systems: ROCm Systems Profiler (Application profiling, tracing, and analysis)
+rocprofiler-systems:
+rocprofiler-systems: ROCm Systems Profiler (rocprofiler-systems), formerly Omnitrace, is a
+rocprofiler-systems: comprehensive profiling and tracing tool for parallel applications
+rocprofiler-systems: written in C, C++, Fortran, HIP, OpenCL, and Python which execute on
+rocprofiler-systems: the CPU or CPU+GPU. It is capable of gathering the performance
+rocprofiler-systems: information of functions through any combination of binary
+rocprofiler-systems: instrumentation, call-stack sampling, user-defined regions, and
+rocprofiler-systems: Python interpreter hooks.
+rocprofiler-systems:
+rocprofiler-systems:

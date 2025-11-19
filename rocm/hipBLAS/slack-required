@@ -1,0 +1,11 @@
+clr
+rocm-llvm
+rocm-cmake
+ROCR-Runtime
+rocm-device-libs
+rocm-comgr
+rocminfo
+hipBLAS-common
+rocBLAS
+rocSOLVER
+rocSPARSE

@@ -1,0 +1,19 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.
+# Line up the first '|' above the ':' following the base package name, and
+# the '|' on the right side marks the last column you can put a character in.
+# You must make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':' except on otherwise blank lines.
+
+         |-----handy-ruler------------------------------------------------------|
+ROCdbgapi: ROCdbgapi (AMD Debugger API (ROCdbgapi))
+ROCdbgapi:
+ROCdbgapi: The AMD Debugger API is a library that provides all the support
+ROCdbgapi: necessary for a debugger and other tools to perform low level control
+ROCdbgapi: of the execution and inspection of execution state of AMDs
+ROCdbgapi: commercially available GPU architectures.
+ROCdbgapi:
+ROCdbgapi:
+ROCdbgapi:
+ROCdbgapi:
+ROCdbgapi:

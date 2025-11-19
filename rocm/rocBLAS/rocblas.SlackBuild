@@ -1,0 +1,68 @@
+#!/bin/bash
+
+read -p "Taking few hours"
+
+if [[ ! -z "${VIRTUAL_ENV}" ]]; then
+    printf "\n Deactivate your Python virtual environment \n"
+    read
+fi
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+PRGNAM=rocBLAS
+cd $ROCM_REL_DIR
+
+tensile_dir=$ROCM_LIBRARIES_DIR/../shared/tensile
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+DEST=$OUTPUT/package-$PRGNAM
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+BUILD=1
+
+rm -rf $DEST
+
+pushd .
+
+export HIPCC_COMPILE_FLAGS_APPEND="-parallel-jobs=$(nproc)"
+export HIPCC_LINK_FLAGS_APPEND="-parallel-jobs=$(nproc)"
+
+
+cmake \
+    -Wno-dev \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
+    -D CMAKE_TOOLCHAIN_FILE=toolchain-linux.cmake \
+    -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
+    -D CMAKE_PREFIX_PATH=${ROCM_INSTALL_DIR}/llvm/lib/cmake/llvm \
+    -D LLVMObjectYAML_LIBRARY=${ROCM_INSTALL_DIR}/llvm/lib/libLLVMObjectYAML.a \
+    -D amd_comgr_DIR=${ROCM_INSTALL_DIR}/lib/cmake/amd_comgr \
+    -D BUILD_WITH_TENSILE=ON \
+    -D TENSILE_USE_HIP=ON \
+    -D TENSILE_USE_LLVM=ON \
+    -D TENSILE_USE_MSGPACK=OFF \
+    -D TENSILE_USE_OPENMP=ON \
+    -D TENSILE_VENV_UPGRADE_PIP=ON \
+    -D Tensile_LIBRARY_FORMAT=yaml \
+    -D TENSILE_ROCM_OFFLOAD_BUNDLER_PATH=${ROCM_INSTALL_DIR}/llvm/bin/clang-offload-bundler \
+    -D TENSILE_GPU_ARCHS="gfx900;gfx90a;gfx942;gfx1030;gfx1100;gfx1101;gfx1102;gfx1200;gfx1201" \
+    -D Tensile_ARCHITECTURE="gfx900;gfx90a;gfx942;gfx1030;gfx1100;gfx1101;gfx1102;gfx1200;gfx1201" \
+    -G "Unix Makefiles" \
+    $ROCM_LIBRARIES_DIR/${PRGNAM,,}
+
+cmake --build . $NUMJOBS
+DESTDIR=$DEST cmake --install . --strip
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd

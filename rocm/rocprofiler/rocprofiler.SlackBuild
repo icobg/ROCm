@@ -1,0 +1,67 @@
+#!/bin/bash
+
+if [[ -z "${VIRTUAL_ENV}" ]]; then
+    printf "\n This module requires enabling the Python virtual environment \n"
+    read
+fi
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+PRGNAM=ROCProfiler
+cd $ROCM_REL_DIR
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+DEST=$OUTPUT/package-$PRGNAM
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+BUILD=1
+rm -rf $DEST
+
+pushd .
+
+HIP_CLANG_PATH=${ROCM_INSTALL_DIR}/llvm/bin \
+cmake \
+    -Wno-dev \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+    -D CMAKE_CXX_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
+    -D LLVM_DIR="${ROCM_INSTALL_DIR}/lib/llvm/lib/cmake/llvm" \
+    -D Clang_DIR="${ROCM_INSTALL_DIR}/lib/llvm/lib/cmake/clang" \
+    -D CLANG_TIDY_EXE="${ROCM_INSTALL_DIR}/lib/llvm/bin/clang-tidy" \
+    -D CMAKE_C_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
+    -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
+    -D ROCPROFILER_BUILD_TESTS=OFF \
+    -D ROCPROFILER_BUILD_PLUGIN_PERFETTO=OFF \
+    -D BUILD_TESTING=OFF \
+    -D PROF_API_HEADER_PATH=$ROCM_REL_DIR/roctracer/inc/ext \
+    -D CMAKE_POSITION_INDEPENDENT_CODE=ON \
+    -D ENABLE_LDCONFIG=OFF \
+    -D USE_PROF_API=1 \
+    -D GPU_BUILD_TARGETS=$AMDGPU_TARGETS \
+    -D GPU_TARGETS=$AMDGPU_TARGETS \
+    -D OpenMP_C_FLAGS="-fopenmp -Wno-unused-command-line-argument" \
+    -D OpenMP_C_LIB_NAMES="libomp;libgomp;libiomp5" \
+    -D OpenMP_CXX_FLAGS="-fopenmp -Wno-unused-command-line-argument" \
+    -D OpenMP_CXX_LIB_NAMES="libomp;libgomp;libiomp5" \
+    -D OpenMP_libomp_LIBRARY="/opt/rocm/lib/libomp.so" \
+    -D OpenMP_libgomp_LIBRARY="/opt/rocm/lib/libgomp.so" \
+    -D OpenMP_libiomp5_LIBRARY="/opt/rocm/lib/libiomp5.so" \
+    $ROCM_SYSTEMS_DIR/${PRGNAM,,}
+
+cmake --build . $NUMJOBS
+DESTDIR=$DEST cmake --install . --strip
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd

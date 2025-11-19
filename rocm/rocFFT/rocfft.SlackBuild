@@ -1,0 +1,50 @@
+#!/bin/bash
+
+read -p "Require few hours"
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+PRGNAM=rocFFT
+cd $ROCM_REL_DIR
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+DEST=$OUTPUT/package-$PRGNAM
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) - 1) "}
+BUILD=1
+rm -rf $DEST
+
+pushd .
+
+export HIPCC_COMPILE_FLAGS_APPEND="-parallel-jobs=$(nproc)"
+export HIPCC_LINK_FLAGS_APPEND="-parallel-jobs=$(nproc)"
+
+cmake \
+    -Wno-dev \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
+    -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
+    -D USE_HIP_CLANG=ON \
+    -D HIP_COMPILER=clang \
+    -D BUILD_CLIENTS_TESTS=OFF \
+    -D BUILD_CLIENTS_BENCHMARKS=OFF \
+    -D BUILD_CLIENTS_SAMPLES=OFF \
+    $ROCM_LIBRARIES_DIR/${PRGNAM,,}
+
+cmake --build . $NUMJOBS
+DESTDIR=$DEST cmake --install . --strip
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd

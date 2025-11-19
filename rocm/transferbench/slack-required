@@ -1,0 +1,7 @@
+rocm-llvm
+rocm-device-libs
+rocm-cmake
+rocm-comgr
+clr
+numactl
+ROCR-Runtime

@@ -1,0 +1,54 @@
+#!/bin/bash
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+PRGNAM=ROCprofiler-SDK
+cd $ROCM_REL_DIR
+
+# don't forget to reinit submodules
+##git submodule deinit -f --all
+##git submodule update --init --recursive
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+DEST=$OUTPUT/package-$PRGNAM
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+BUILD=1
+rm -rf $DEST
+
+pushd .
+
+cmake \
+    -Wno-dev \
+    -G Ninja \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+    -D CMAKE_CXX_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
+    -D CMAKE_C_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
+    -D ROCPROFILER_BUILD_TESTS=OFF \
+    -D CMAKE_CXX_FLAGS="${CXXFLAGS} -fcf-protection=none -fPIC" \
+    -D CMAKE_POSITION_INDEPENDENT_CODE=ON \
+    -D BUILD_TESTING=OFF \
+    $ROCM_SYSTEMS_DIR/${PRGNAM,,}
+
+sed -i -e '1i#include <cstdint>\' ${ROCM_SYSTEMS_DIR}/${PRGNAM,,}/external/yaml-cpp/src/emitterutils.cpp
+sed -i -e '1i#include <cstdint>\' ${ROCM_SYSTEMS_DIR}/${PRGNAM,,}/external/elfio/elfio/elf_types.hpp
+
+"${NINJA:=ninja}" $NUMJOBS || exit 1
+DESTDIR=$DEST "$NINJA" install/strip || exit 1
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd

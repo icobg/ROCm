@@ -1,0 +1,19 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.
+# Line up the first '|' above the ':' following the base package name, and
+# the '|' on the right side marks the last column you can put a character in.
+# You must make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':' except on otherwise blank lines.
+
+                 |-----handy-ruler------------------------------------------------------|
+composablekernel: composable_kernel (High Performance Composable Kernel for AMD GPUs)
+composablekernel:
+composablekernel: The Composable Kernel (CK) library provides a programming model for
+composablekernel: writing performance-critical kernels for machine learning workloads
+composablekernel: across multiple architectures (GPUs, CPUs, etc.). The CK library
+composablekernel: uses general purpose kernel languages, such as HIP C++.
+composablekernel:
+composablekernel:
+composablekernel:
+composablekernel:
+composablekernel:

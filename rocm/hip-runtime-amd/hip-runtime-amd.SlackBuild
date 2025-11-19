@@ -1,0 +1,69 @@
+#!/bin/bash
+
+if [[ -z "${VIRTUAL_ENV}" ]]; then
+    printf "\n This module requires enabling the Python virtual environment \n"
+    read
+fi
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+cd $ROCM_REL_DIR
+
+rm -rf $ROCM_BUILD_DIR/clr
+mkdir -p $ROCM_BUILD_DIR/clr
+cd $ROCM_BUILD_DIR/clr
+
+DEST=$OUTPUT/package-hip
+PRGNAM=hip-runtime-amd
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+BUILD=1
+
+rm -rf $DEST
+
+pushd .
+
+ROCclr_DIR=$ROCM_SYSTEMS_DIR/clr
+OPENCL_DIR=$ROCM_SYSTEMS_DIR/rocr-runtime
+HIP_DIR=$ROCM_SYSTEMS_DIR/hip
+
+cd $ROCM_BUILD_DIR/clr
+cmake \
+    -G Ninja \
+    -Wno-dev \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+    -D CMAKE_CXX_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
+    -D CMAKE_C_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
+    -D PROF_API_HEADER_DIR=${ROCM_INSTALL_DIR}/include/rocprofiler-register \
+    -D HIP_CATCH_TEST=0 \
+    -D HIP_COMMON_DIR=${HIP_DIR} \
+    -D CLR_BUILD_HIP=ON \
+    -D CLR_BUILD_OCL=OFF \
+    -D ROCCLR_ENABLE_HSA=ON \
+    -D ROCCLR_ENABLE_LC=ON \
+    $ROCM_SYSTEMS_DIR/clr
+
+"${NINJA:=ninja}" $NUMJOBS || exit 1
+DESTDIR=$DEST "$NINJA" install/strip || exit 1
+
+
+mkdir -p $DEST/usr/lib64
+mkdir -p $DEST/usr/include
+
+ln -s /opt/rocm/lib64/libamdhip64.so $DEST/usr/lib64/libamdhip64.so
+ln -s /opt/rocm/lib64/libamdhip64.so.7 $DEST/usr/lib64/libamdhip64.so.7
+ln -s /opt/rocm/include/hip $DEST/usr/include/hip
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd
+

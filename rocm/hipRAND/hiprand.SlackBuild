@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+PRGNAM=hipRAND
+cd $ROCM_REL_DIR
+
+cd $ROCM_LIBRARIES_DIR/$PRGNAM
+sed -i 's|/hip/bin|/bin|g' toolchain-linux.cmake
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+DEST=$OUTPUT/package-$PRGNAM
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+BUILD=1
+rm -rf $DEST
+
+pushd .
+
+cmake \
+    -G Ninja \
+    -Wno-dev \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_TOOLCHAIN_FILE=toolchain-linux.cmake \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+    -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
+    -D BUILD_FORTRAN_WRAPPER=ON \
+    $ROCM_LIBRARIES_DIR/${PRGNAM,,}
+
+"${NINJA:=ninja}" $NUMJOBS || exit 1
+DESTDIR=$DEST "$NINJA" install/strip || exit 1
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd

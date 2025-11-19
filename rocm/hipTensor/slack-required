@@ -1,0 +1,6 @@
+rocm-llvm
+rocm-device-libs
+rocm-cmake
+rocm-comgr
+clr
+composable_kernel

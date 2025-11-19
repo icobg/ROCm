@@ -1,0 +1,15 @@
+--- a/src/rvs_blas.cpp	2025-11-15 11:12:27.150951345 +0200
++++ b/src/rvs_blas.cpp	2025-11-15 10:48:00.641411992 +0200
+@@ -2387,8 +2387,11 @@
+                                 bool                        isTranspose,
+                                 bool                        isMatrixA)
+ {
++    using DGen::index_t;
++    std::vector<DGen::index_t> idx_sizes(sizes.begin(), sizes.end());
++    std::vector<DGen::index_t> idx_strides(strides.begin(), strides.end());
+     dgen.setSeed(seed);
+-    dgen.generate(sizes, strides, opt);
++    dgen.generate(idx_sizes, idx_strides, opt);
+ 
+     std::vector<uint8_t> dataBytes = dgen.getDataBytes();
+     std::memcpy(data, dataBytes.data(), dataBytes.size() * sizeof(uint8_t));

@@ -1,0 +1,10 @@
+rocm-llvm
+blis
+rocm-cmake
+rocTracer
+rocm-comgr
+hipblas-common
+rocr-runtime
+rocm_smi
+msgpack-cxx
+hip-runtime-amd

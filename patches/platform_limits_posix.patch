@@ -1,0 +1,12 @@
+--- a/compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_posix.cpp	2025-08-07 16:41:40.000000000 +0300
++++ b/compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_posix.cpp	2025-09-17 14:50:30.309929559 +0300
+@@ -486,7 +486,8 @@
+   unsigned struct_mtpos_sz = sizeof(struct mtpos);
+   unsigned struct_rtentry_sz = sizeof(struct rtentry);
+ #if SANITIZER_GLIBC || SANITIZER_ANDROID
+-  unsigned struct_termio_sz = sizeof(struct termio);
++  #include <termios.h>
++    unsigned struct_termio_sz = sizeof(struct termios);
+ #endif
+   unsigned struct_vt_consize_sz = sizeof(struct vt_consize);
+   unsigned struct_vt_sizes_sz = sizeof(struct vt_sizes);

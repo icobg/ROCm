@@ -1,0 +1,3 @@
+rocm-llvm
+rocm-cmake
+rocm-device-libs

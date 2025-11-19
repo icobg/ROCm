@@ -1,0 +1,15 @@
+rocm-llvm
+rocm-device-libs
+ROCdbg
+rocm-cmake
+rocm-comgr
+clr
+hipBLAS-common
+hipBLAS
+hipBLASLt
+MIOpen
+rocMLIR
+rocBLAS
+msgpack-cxx
+nlohmann_json
+pybind11

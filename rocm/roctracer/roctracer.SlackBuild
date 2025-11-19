@@ -1,0 +1,60 @@
+#!/bin/bash
+
+if [[ -z "${VIRTUAL_ENV}" ]]; then
+    printf "\n This module requires enabling the Python virtual environment \n"
+    read
+fi
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+PRGNAM=roctracer
+cd $ROCM_REL_DIR
+
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+DEST=$OUTPUT/package-$PRGNAM
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+BUILD=1
+rm -rf $DEST
+
+pushd .
+
+PACKAGE_ROOT=$ROCM_INSTALL_DIR/$PRGNAM
+PACKAGE_PREFIX=$ROCM_INSTALL_DIR/$PRGNAM
+LD_RUNPATH_FLAG="-Wl,--enable-new-dtags -Wl,--rpath,$ROCM_INSTALL_DIR/lib:$ROCM_INSTALL_DIR/lib64 -fPIC"
+HIP_API_STRING=1
+export HIP_PATH=$ROCM_INSTALL_DIR
+export HSA_RUNTIME_INC=$ROCM_INSTALL_DIR/include/hsa/hsa.h
+
+cmake \
+    -Wno-dev \
+    -G Ninja \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
+    -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
+    -D HIP_ROOT_DIR=${ROCM_INSTALL_DIR} \
+    -D CMAKE_CXX_FLAGS="${CXXFLAGS} -fcf-protection=none -fPIC" \
+    -D CMAKE_C_FLAGS="${C_FLAGS} -fPIC" \
+    -D CMAKE_SHARED_LINKER_FLAGS="$LD_RUNPATH_FLAG" \
+    -D CMAKE_POSITION_INDEPENDENT_CODE=ON \
+    -D GPU_BUILD_TARGETS=$AMDGPU_TARGETS \
+    $ROCM_SYSTEMS_DIR/$PRGNAM
+
+"${NINJA:=ninja}" $NUMJOBS || exit 1
+DESTDIR=$DEST "$NINJA" install/strip || exit 1
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+read -p "Repacking Ubuntu packages and save 2 days for compilation"
+
+PRGNAM=composablekernel
+DEST=$OUTPUT/package-$PRGNAM
+BUILD=1
+
+cd $ROCM_REL_DIR
+wget https://repo.radeon.com/rocm/apt/${PKGVER}/pool/main/c/composablekernel-ckprofiler/composablekernel-ckprofiler_1.1.0.$ROCM_VERSION-$ROCM_MAGIC~24.04_amd64.deb
+wget https://repo.radeon.com/rocm/apt/${PKGVER}/pool/main/c/composablekernel-dev/composablekernel-dev_1.1.0.$ROCM_VERSION-$ROCM_MAGIC~24.04_amd64.deb
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+mkdir tmp && cd tmp
+ar x $ROCM_REL_DIR/composablekernel-ckprofiler_1.1.0.$ROCM_VERSION-$ROCM_MAGIC~24.04_amd64.deb
+tar xf data.tar.xz
+rm *z debian-binary
+ar x $ROCM_REL_DIR/composablekernel-dev_1.1.0.$ROCM_VERSION-$ROCM_MAGIC~24.04_amd64.deb
+tar xf data.tar.xz
+rm *z debian-binary
+mv opt/rocm-${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION} opt/rocm
+mkdir -p install
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+cd $ROCM_REL_DIR
+rm -rf tmp

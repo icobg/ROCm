@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# Building ROCm CORE
+
+set -e
+CWD=$(pwd)
+
+source $CWD/../../rocm-environment.sh
+
+PRGNAM=rocm-core
+cd $ROCM_REL_DIR
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+DEST=$OUTPUT/package-$PRGNAM
+
+BUILD=1
+rm -rf $DEST
+
+pushd .
+
+cmake \
+  -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
+  -D PROJECT_VERSION_MAJOR=${ROCM_MAJOR_VERSION} \
+  -D PROJECT_VERSION_MINOR=${ROCM_MINOR_VERSION} \
+  -D PROJECT_VERSION_PATCH=${ROCM_PATCH_VERSION} \
+  -D ROCM_PATCH_VERSION=${ROCM_LIBPATCH_VERSION} \
+  -D ROCM_VERSION=${PKGVER} \
+  -D BUILD_ID=${BUILD} \
+  $ROCM_SYSTEMS_DIR/$PRGNAM
+
+make -j $(nproc)
+make install DESTDIR=$DEST
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+mkdir -p $DEST/opt/rocm/lib64
+mkdir -p $DEST/opt/rocm
+
+# This line will save you a lot of headaches
+# ROCm does not support lib64 oficially
+( cd $DEST/opt/rocm
+  rm -rf lib
+  ln -s lib64 lib
+)
+
+cd $DEST
+# Create the correct version
+#echo "${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}" > opt/rocm/.version
+#echo "#define ROCM_BUILD_INFO \"$ROCM_MAJOR_VERSION.$ROCM_MINOR_VERSION.$ROCM_PATCH_VERSION.0-$ROCM_MAGIC\"" >> opt/rocm/include/rocm_version.h
+#echo "#define ROCM_BUILD_INFO \"$ROCM_MAJOR_VERSION.$ROCM_MINOR_VERSION.$ROCM_PATCH_VERSION.0-$ROCM_MAGIC\"" >> opt/rocm/include/rocm-core/rocm_version.h
+mkdir -p etc/ld.so.conf.d
+cat $CWD/rocm.conf > $DEST/etc/ld.so.conf.d/rocm.conf
+mkdir -p etc/profile.d
+cat $CWD/rocm.sh > $DEST/etc/profile.d/rocm.sh
+
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd
+

@@ -1,0 +1,19 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.
+# Line up the first '|' above the ':' following the base package name, and
+# the '|' on the right side marks the last column you can put a character in.
+# You must make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':' except on otherwise blank lines.
+
+                   |-----handy-ruler------------------------------------------------------|
+ROCmValidationSuite: ROCmValidationSuite
+ROCmValidationSuite:
+ROCmValidationSuite: The ROCm Validation Suite (RVS) is a system validation and diagnostics
+ROCmValidationSuite: tool for monitoring, stress testing, detecting and troubleshooting
+ROCmValidationSuite: issues that affects the functionality and performance of AMD GPU(s)
+ROCmValidationSuite: operating in a high-performance/AI/ML computing environment. RVS is
+ROCmValidationSuite: enabled using the ROCm software stack on a compatible software and
+ROCmValidationSuite: hardware platform.
+ROCmValidationSuite:
+ROCmValidationSuite:
+ROCmValidationSuite:

@@ -1,0 +1,11 @@
+rocm-llvm
+rocm-device-libs
+rocsparse
+rocm-cmake
+rocm-comgr
+hip-runtime-amd
+hipcc
+hipify
+rocr-runtime
+rocm-smi-lib
+rocprofiler-register

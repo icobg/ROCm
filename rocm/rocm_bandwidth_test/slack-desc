@@ -1,0 +1,19 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.
+# Line up the first '|' above the ':' following the base package name, and
+# the '|' on the right side marks the last column you can put a character in.
+# You must make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':' except on otherwise blank lines.
+
+                   |-----handy-ruler------------------------------------------------------|
+rocm_bandwidth_test: ROCm Bandwidth Test
+rocm_bandwidth_test:
+rocm_bandwidth_test: ROCm Bandwidth Test is designed to capture the performance
+rocm_bandwidth_test: characteristics of buffer copying and kernel read and write
+rocm_bandwidth_test: operations. The benchmark help screen shows various options for
+rocm_bandwidth_test: initiating copy, read, and write operations. In addition to this, you
+rocm_bandwidth_test: can also query the system topology in terms of memory pools and their
+rocm_bandwidth_test: agents.
+rocm_bandwidth_test:
+rocm_bandwidth_test:
+rocm_bandwidth_test:

@@ -1,0 +1,10 @@
+rocm-llvm
+rocm-cmake
+rocm-comgr
+hip-runtime-amd
+amdsmi
+hipblas-common
+hipblaslt
+hiprand
+yaml-cpp
+rocm-device-libs

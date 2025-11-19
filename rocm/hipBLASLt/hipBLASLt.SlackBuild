@@ -1,0 +1,67 @@
+#!/bin/bash
+
+read -p "| Require 64+ GB of RAM memory and few hours |"
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+PRGNAM=hipBLASLt
+cd $ROCM_REL_DIR
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+pushd .
+
+DEST=$OUTPUT/package-$PRGNAM
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) - 8) "}
+BUILD=1
+rm -rf $DEST
+
+cmake \
+    -Wno-dev \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
+    -D CMAKE_INCLUDE_PATH=${ROCM_INSTALL_DIR}/llvm/include \
+    -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+    -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+    -D YAML_CPP_CLANG_FORMAT_EXE=${ROCM_INSTALL_DIR}/llvm/bin/clang-format \
+    -D GPU_BUILD_TARGETS="gfx908;gfx90a;gfx942;gfx950;gfx1100;gfx1101;gfx1103;gfx1150;gfx1151;gfx1200;gfx1201" \
+    -D GPU_TARGETS="gfx908;gfx90a;gfx942;gfx950;gfx1100;gfx1101;gfx1103;gfx1150;gfx1151;gfx1200;gfx1201" \
+    -D AMDGPU_TARGETS="gfx908;gfx90a;gfx942;gfx950;gfx1100;gfx1101;gfx1103;gfx1150;gfx1151;gfx1200;gfx1201" \
+    -D Tensile_CPU_THREADS= \
+    -D Tensile_ENABLE_MARKER=ON \
+    -D HIPBLASLT_ENABLE_SAMPLES=OFF \
+    -D HIPBLASLT_ENABLE_ROCROLLER=ON \
+    -D HIPBLASLT_BUILD_TESTING=OFF \
+    -D NB_TEST_FREE_THREADED=OFF \
+    -D CMAKE_POLICY_VERSION_MINIMUM=3.5 \
+    -D ROCM_WARN_TOOLCHAIN_VAR=OFF \
+    -D Tensile_CODE_OBJECT_VERSION=default \
+    -D BLIS_INCLUDE_DIR=/usr/include/blis \
+    -D OpenMP_C_FLAGS="-fopenmp -Wno-unused-command-line-argument" \
+    -D OpenMP_C_LIB_NAMES="libomp;libgomp;libiomp5" \
+    -D OpenMP_CXX_FLAGS="-fopenmp -Wno-unused-command-line-argument" \
+    -D OpenMP_CXX_LIB_NAMES="libomp;libgomp;libiomp5" \
+    -D OpenMP_libomp_LIBRARY="/opt/rocm/lib/libomp.so" \
+    -D OpenMP_libgomp_LIBRARY="/opt/rocm/lib/libgomp.so" \
+    -D OpenMP_libiomp5_LIBRARY="/opt/rocm/lib/libiomp5.so" \
+    $ROCM_LIBRARIES_DIR/${PRGNAM,,} 2>&1 | tee /tmp/configure-${PRGNAM}.log
+
+sed -i -e '1i#include <cstdint>\' ${ROCM_BUILD_DIR}/$PRGNAM/_deps/yaml_cpp-src/src/emitterutils.cpp
+cmake --build . $NUMJOBS 2>&1 | tee /tmp/make-${PRGNAM}.log
+DESTDIR=$DEST cmake --install . --strip 2>&1 | tee /tmp/install-${PRGNAM}.log
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd

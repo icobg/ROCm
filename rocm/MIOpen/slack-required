@@ -1,0 +1,17 @@
+clr
+rocm-llvm
+half
+hipcc
+rocm-cmake
+rocminfo
+composable_kerne
+rocm-comgr
+hipBLAS-common
+hipBLASLt
+rocMLIR
+ROCR-Runtime
+rocBLAS
+rocm-device-libs
+rocTracer
+rocrand
+nlohmann_json

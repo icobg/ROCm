@@ -1,0 +1,10 @@
+rocm-llvm
+rocm-device-libs
+aqlprofile
+hip-runtime-amd
+numactl
+roctracer
+rocm-core
+rocm-smi-lib
+rocm-comgr
+python-barectf

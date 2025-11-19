@@ -1,0 +1,19 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.
+# Line up the first '|' above the ':' following the base package name, and
+# the '|' on the right side marks the last column you can put a character in.
+# You must make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':' except on otherwise blank lines.
+
+       |-----handy-ruler------------------------------------------------------|
+hipRAND: hipRAND (rocRAND marshalling library)
+hipRAND:
+hipRAND: hipRAND is a RAND marshalling library with multiple supported
+hipRAND: backends. It sits between your application and the backend RAND
+hipRAND: library, where it marshals inputs to the backend and results to the
+hipRAND: application. hipRAND exports an interface that doesnt require the
+hipRAND: client to change, regardless of the chosen backend.
+hipRAND:
+hipRAND: hipRAND supports rocRAND and cuRAND.
+hipRAND:
+hipRAND:

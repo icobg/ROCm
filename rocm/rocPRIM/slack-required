@@ -1,0 +1,6 @@
+rocm-llvm
+rocm-cmake
+rocrand
+rocr-runtime
+hip-runtime-amd
+rocm-device-libs

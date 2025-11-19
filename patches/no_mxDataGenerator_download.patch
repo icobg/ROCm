@@ -1,0 +1,47 @@
+--- a/CMakeLists.txt	2025-11-15 11:12:27.134951305 +0200
++++ b/CMakeLists.txt	2025-11-15 11:13:37.677130529 +0200
+@@ -462,25 +462,25 @@
+ 
+ ################################################################################
+ # mxDataGenerator Download
+-configure_file(CMakeMXDataGeneratorDownload.cmake mxDataGenerator-download/CMakeLists.txt)
+-  execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+-      RESULT_VARIABLE result
+-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/mxDataGenerator-download )
+-if(result)
+-  message(FATAL_ERROR "CMake step for mxDataGenerator failed: ${result}")
+-endif()
+-  execute_process(COMMAND ${CMAKE_COMMAND} --build .
+-      RESULT_VARIABLE result
+-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/mxDataGenerator-download )
+-if(result)
+-  message(FATAL_ERROR "Build step for mxDataGenerator failed: ${result}")
+-endif()
+-  execute_process(COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}/mxDataGenerator-src -B${CMAKE_BINARY_DIR}/mxDataGenerator-build
+-      RESULT_VARIABLE result
+-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/mxDataGenerator-src )
+-if(result)
+-  message(FATAL_ERROR "Config step for mxDataGenerator-src failed: ${result}")
+-endif()
++#configure_file(CMakeMXDataGeneratorDownload.cmake mxDataGenerator-download/CMakeLists.txt)
++#  execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
++#      RESULT_VARIABLE result
++#      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/mxDataGenerator-download )
++#if(result)
++#  message(FATAL_ERROR "CMake step for mxDataGenerator failed: ${result}")
++#endif()
++#  execute_process(COMMAND ${CMAKE_COMMAND} --build .
++#      RESULT_VARIABLE result
++#      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/mxDataGenerator-download )
++#if(result)
++#  message(FATAL_ERROR "Build step for mxDataGenerator failed: ${result}")
++#endif()
++#  execute_process(COMMAND ${CMAKE_COMMAND} ${CMAKE_BINARY_DIR}/mxDataGenerator-src -B${CMAKE_BINARY_DIR}/mxDataGenerator-build
++#      RESULT_VARIABLE result
++#      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/mxDataGenerator-src )
++#if(result)
++#  message(FATAL_ERROR "Config step for mxDataGenerator-src failed: ${result}")
++#endif()
+ 
+ if (NOT DEFINED MXDATAGENERATOR_INC_DIR)
+   set (MXDATAGENERATOR_INC_DIR "${CMAKE_BINARY_DIR}/mxDataGenerator-src/lib/include")

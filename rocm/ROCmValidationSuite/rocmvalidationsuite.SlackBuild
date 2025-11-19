@@ -1,0 +1,66 @@
+#!/bin/bash
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+PRGNAM=ROCmValidationSuite
+cd $ROCM_REL_DIR
+
+if [ -d $ROCM_REL_DIR/$PRGNAM ]; then
+    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git checkout ${ROCM_BRANCH} )
+else
+    ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/ROCmValidationSuite.git )
+fi
+
+( cd $ROCM_REL_DIR/$PRGMAM
+patch -Np1 -i $CWD/../../patches/no_mxDataGenerator_download.patch
+patch -Np1 -i $CWD/../../patches/fix_int_to_index.patch
+)
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+DEST=$OUTPUT/package-$PRGNAM
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+BUILD=1
+
+pushd .
+
+cmake \
+    -Wno-dev \
+    -G Ninja \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
+    -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
+    -D AMDGPU_TARGETS="gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx950;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201" \
+    -D GPU_TARGETS="gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx950;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201" \
+    -D RVS_BUILD_TESTS=OFF \
+    -D RVS_ROCBLAS=0 \
+    -D RVS_ROCMSMI=0 \
+    -D CMAKE_POLICY_VERSION_MINIMUM=3.5 \
+    -D MXDATAGENERATOR_INC_DIR=${ROCM_LIBRARIES_DIR}/../shared/mxdatagenerator/lib/include \
+    -D OpenMP_C_FLAGS="-fopenmp -Wno-unused-command-line-argument" \
+    -D OpenMP_C_LIB_NAMES="libomp;libgomp;libiomp5" \
+    -D OpenMP_CXX_FLAGS="-fopenmp -Wno-unused-command-line-argument" \
+    -D OpenMP_CXX_LIB_NAMES="libomp;libgomp;libiomp5" \
+    -D OpenMP_libomp_LIBRARY="/opt/rocm/lib/libomp.so" \
+    -D OpenMP_libgomp_LIBRARY="/opt/rocm/lib/libgomp.so" \
+    -D OpenMP_libiomp5_LIBRARY="/opt/rocm/lib/libiomp5.so" \
+    -D rocblas_DIR=${ROCM_INSTALL_DIR}/lib64/cmake/rocblas \
+    $ROCM_REL_DIR/$PRGNAM
+
+"${NINJA:=ninja}" $NUMJOBS || exit 1
+DESTDIR=$DEST "$NINJA" install/strip || exit 1
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd

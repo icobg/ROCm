@@ -1,0 +1,6 @@
+rocm-llvm
+rocm-device-libs
+rocm-comgr
+clr
+ROCR-Runtime
+MIOpen

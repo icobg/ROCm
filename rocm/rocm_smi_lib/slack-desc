@@ -1,0 +1,19 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.
+# Line up the first '|' above the ':' following the base package name, and
+# the '|' on the right side marks the last column you can put a character in.
+# You must make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':' except on otherwise blank lines.
+
+            |-----handy-ruler------------------------------------------------------|
+rocm-smi-lib: rocm-smi-lib (ROCm System Management Interface Library)
+rocm-smi-lib:
+rocm-smi-lib: The ROCm System Management Interface Library, or ROCm SMI library, is
+rocm-smi-lib: part of the Radeon Open Compute ROCm software stack . It is a C
+rocm-smi-lib: library for Linux that provides a user space interface for
+rocm-smi-lib: applications to monitor and control GPU applications.
+rocm-smi-lib:
+rocm-smi-lib:
+rocm-smi-lib:
+rocm-smi-lib:
+rocm-smi-lib:

@@ -1,0 +1,14 @@
+rocm-llvm
+rocm-device-libs
+rocm-comgr
+clr
+ROCR-Runtime
+amdsmi
+hipBLAS-common
+hipBLASLt
+hipRAND
+rocBLAS
+rocm-core
+rocRAND
+gRPC
+yaml-cpp

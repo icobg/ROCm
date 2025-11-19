@@ -1,0 +1,10 @@
+clr
+rocm-device-libs
+rocm-llvm
+rocm-cmake
+rocrand
+rocm-comgr
+ROCR-Runtime
+rocBLAS
+rocPRIM
+rocsparse

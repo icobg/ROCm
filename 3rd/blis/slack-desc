@@ -1,0 +1,19 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description. Line
+# up the first '|' above the ':' following the base package name, and the '|' 
+# on the right side marks the last column you can put a character in. You must
+# make exactly 11 lines for the formatting to be correct. It's also customary
+# to leave one space after the ':'.
+
+    |----handy-ruler--------------------------------------------------------|
+blis: AOCL-BLAS library
+blis:
+blis: AOCL-BLAS is AMD's optimized version of BLAS targeted for AMD EPYC
+blis: and Ryzen CPUs. All known features and functionalities of BLIS are
+blis: retained and supported in AOCL-BLAS library. AOCL-BLAS is regularly
+blis: updated with the improvements from the upstream repository.
+blis:
+blis:
+blis:
+blis:
+blis:

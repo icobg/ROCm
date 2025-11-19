@@ -1,0 +1,60 @@
+#!/bin/bash
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+PRGNAM=ROCgdb
+cd $ROCM_REL_DIR
+
+if [ -d $ROCM_REL_DIR/$PRGNAM ]; then
+    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git checkout ${ROCM_BRANCH} )
+else
+    ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/ROCgdb.git )
+fi
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+DEST=$OUTPUT/package-$PRGNAM
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+BUILD=1
+rm -rf $DEST
+
+pushd .
+
+export PKG_CONFIG_PATH="/opt/rocm/share/pkgconfig:$PKG_CONFIG_PATH"
+LDFLAGS="-Wl,--enable-new-dtags,-rpath=$ROCM_INSTALL_DIR/lib" $ROCM_REL_DIR/$PRGNAM/configure \
+        --prefix=$ROCM_INSTALL_DIR \
+        --program-prefix=roc \
+        --disable-gprofng \
+        --disable-gprof \
+        --enable-tui \
+        --enable-64-bit-bfd \
+        --enable-targets="x86_64-linux-gnu,amdgcn-amd-amdhsa" \
+        --with-system-readline \
+        --with-python=/usr/bin/python \
+        --with-expat \
+        --with-system-zlib \
+        --with-lzma \
+        --disable-gdbtk \
+        --disable-ld \
+        --disable-gas \
+        --disable-gdbserver \
+        --disable-sim \
+        --without-guile \
+        --with-rocm-dbgapi=$ROCM_INSTALL_DIR
+
+make $NUMJOBS
+make DESTDIR=$DEST install
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd

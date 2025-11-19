@@ -1,0 +1,49 @@
+#!/bin/bash
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+cd $ROCM_REL_DIR
+
+echo "Building ROCm Device Libraries"
+PRGNAM=rocm-device-libs
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+LLVMNAM=llvm-project
+
+( cd $ROCM_REL_DIR/$LLVMNAM && patch -Np1 -i $CWD/../../patches/a18cc4c.patch )
+
+BUILD=1
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+DEST=$OUTPUT/package-$PRGNAM
+rm -rf $DEST
+
+pushd .
+
+cmake \
+    -G Ninja \
+    -Wno-dev \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/lib/llvm/bin/amdclang++ \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/lib/llvm/bin/amdclang \
+    -D LLVM_DIR="${ROCM_INSTALL_DIR}/lib/llvm/lib/cmake/llvm" \
+    -D Clang_DIR="${ROCM_INSTALL_DIR}/lib/llvm/lib/cmake/clang" \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_INSTALL_PREFIX=$ROCM_INSTALL_DIR \
+    -D CMAKE_PREFIX_PATH="$ROCM_BUILD_DIR/build" \
+    $ROCM_REL_DIR/$LLVMNAM/amd/device-libs
+
+"${NINJA:=ninja}" $NUMJOBS || exit 1
+DESTDIR=$DEST "$NINJA" install/strip || exit 1
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd

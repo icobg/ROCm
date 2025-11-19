@@ -1,0 +1,62 @@
+#!/bin/bash
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+printf "Require 2 days for compilation\n"
+printf "\nI'm strongly recomend you to use ubuntu package because this package"
+printf "\ndoes not compile every time and compilation process take a lot's of time"
+printf "\nand CK team usual respond on bug for 2+ weeks\n"
+
+read -p "Press any key to continue"
+
+PRGNAM=composablekernel
+cd $ROCM_REL_DIR
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+DEST=$OUTPUT/package-$PRGNAM
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) - 2 ) "}
+BUILD=1
+rm -rf $DEST
+
+pushd .
+
+cmake \
+    -Wno-dev \
+    -D CMAKE_HIP_COMPILER_ROCM_LIB=${ROCM_INSTALL_DIR}/lib \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
+    -D CMAKE_HIP_ARCHITECTURES=$AMDGPU_TARGETS \
+    -D OpenMP_CXX_FLAGS="-fopenmp -Wno-unused-command-line-argument" \
+    -D OpenMP_CXX_LIB_NAMES="libomp;libgomp;libiomp5" \
+    -D OpenMP_libomp_LIBRARY="/opt/rocm/lib/libomp.so" \
+    -D OpenMP_libgomp_LIBRARY="/opt/rocm/lib/libgomp.so" \
+    -D OpenMP_libiomp5_LIBRARY="/opt/rocm/lib/libiomp5.so" \
+    -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+    -D CMAKE_HIP_FLAGS="-Wno-missing-include-dirs" \
+    -D BUILD_DEV=OFF \
+    -D BUILD_TESTING=OFF \
+    -D CMAKE_POSITION_INDEPENDENT_CODE=ON \
+    -D USE_OPT_GFX11=ON \
+    $ROCM_LIBRARIES_DIR/$PRGNAM
+
+make -j $NUMJOBS
+make -j $NUMJOBS ckProfiler
+make $NUMJOBS install DESTDIR=$DEST
+mkdir -p $DEST/bin
+cp bin/ckProfiler $DEST/bin
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd

@@ -1,0 +1,69 @@
+#!/bin/bash
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+PRGNAM=AMDMIGraphX
+cd $ROCM_REL_DIR
+
+if [ -d $ROCM_REL_DIR/$PRGNAM ]; then
+    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git checkout ${ROCM_BRANCH} )
+else
+    ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/AMDMIGraphX.git )
+fi
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+DEST=$OUTPUT/package-$PRGNAM
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+BUILD=1
+
+pushd .
+
+LDFLAGS=-lstdc++ cmake \
+    -Wno-dev \
+    -G Ninja \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_PREFIX_PATH=${ROCM_INSTALL_DIR}/lib/llvm/lib/cmake \
+    -D ROCM_GDB="${ROCM_INSTALL_DIR}/bin/rocdbg" \
+    -D HALF_INCLUDE_DIR="${ROCM_INSTALL_DIR}/include" \
+    -D MIGRAPHX_ENABLE_GPU=ON \
+    -D MIGRAPHX_USE_COMPOSABLEKERNEL=OFF \
+    -D BUILD_TESTING=OFF \
+    -D MIGRAPHX_ENABLE_MLIR=ON \
+    -D MIGRAPHX_ENABLE_CPU=OFF \
+    -D CMAKE_POLICY_VERSION_MINIMUM=3.5 \
+    -D AMDGPU_TARGETS="gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201" \
+    $ROCM_REL_DIR/${PRGNAM}
+
+#sed -i 's|-Wl,-rpath-link|-Wl,-allow-shlib-undefined,-rpath-link|g' src/driver/CMakeFiles/driver.dir/link.txt
+#sed -i 's|-Wl,-rpath-link|-Wl,-allow-shlib-undefined,-rpath-link|g' src/targets/gpu/driver/CMakeFiles/gpu-driver.dir/link.txt
+#sed -i 's|-Wl,-rpath-link|-Wl,-allow-shlib-undefined,-rpath-link|g' src/targets/gpu/hiprtc/CMakeFiles/migraphx-hiprtc-driver.dir/link.txt
+
+ulimit -n 4096
+"${NINJA:=ninja}" $NUMJOBS || exit 1
+DESTDIR=$DEST "$NINJA" install/strip || exit 1
+
+#cmake --build . $NUMJOBS
+#DESTDIR=$DEST cmake --install . --strip
+
+
+#make $NUMJOBS
+#make DESTDIR=$DEST install
+
+#    -D ROCM_ENABLE_CLANG_TIDY=OFF \
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd

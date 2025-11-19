@@ -1,0 +1,52 @@
+#!/bin/bash
+
+set -e
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+
+PRGNAM=clr
+cd $ROCM_REL_DIR
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+DEST=$OUTPUT/package-$PRGNAM
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+BUILD=1
+rm -rf $DEST
+
+pushd .
+
+cmake \
+    -Wno-dev \
+    -G Ninja \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+    -D CMAKE_CXX_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
+    -D CMAKE_C_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
+    -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
+    -D BUILD_ICD=ON \
+    -D CLR_BUILD_HIP=ON \
+    -D HIP_COMMON_DIR=$ROCM_SYSTEMS_DIR/hip \
+    -D PROF_API_HEADER_PATH=${ROCM_INSTALL_DIR}/include/roctracer/ext \
+    -D CLR_BUILD_OCL=ON \
+    -D llvm-mc=${ROCM_INSTALL_DIR}/llvm/bin/llvm-mc \
+    -D clang=${ROCM_INSTALL_DIR}/llvm/bin/clang \
+    $ROCM_SYSTEMS_DIR/clr
+
+"${NINJA:=ninja}" $NUMJOBS || exit 1
+DESTDIR=$DEST "$NINJA" install/strip || exit 1
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+mkdir -p etc/OpenCL/vendors
+echo '/opt/rocm/lib/libamdocl64.so' > etc/OpenCL/vendors/amdocl64.icd
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd
