@@ -11,65 +11,63 @@ I have removed numbering for clarity.
 
 ## Core Packages
 
-rocm-core
-
-rocm-cmake
-
-rocm-llvm
-rocm-device-libs
-rocm-comgr
-HIPCC
-rocprofiler-register
-ROCR-Runtime
-rocminfo
-hip-runtime-amd
-rocRAND
-hipRAND
-rocFFT
-hipBLAS-common
-roctracer
-rocm_smi_lib
-openmp
-hipBLASLt
-amdsmi
-rocBLAS
-rocPRIM
-rocSPARSE
-hipSPARSE
-ROCmValidationSuite
-HIPIFY
-rccl
-hipFFT
-clr
-ROCdbgapi
-aqlprofile
-rocprofiler
-rocDecode
-rocJPEG
-rocprofiler-sdk
-rocprofiler-system
-half
-composable-kernel
-rocMLIR
-rocSOLVER
-hipBLAS
-rocThrust
-MIOpen
-rocALUTION
-hipCUB
-hipSOLVER
-ROCgdb
-hipfort
-rocm_bandwidth_test
-AMDMIGraphX
-hipTensor
-rocWMMA
-rpp
-transferbench
-MIVisionX
-rocAL
-rdc
-hipDNN
+ - rocm-core
+ - rocm-cmake
+ - rocm-llvm
+ - rocm-device-libs
+ - rocm-comgr
+ - HIPCC
+ - rocprofiler-register
+ - ROCR-Runtime
+ - rocminfo
+ - hip-runtime-amd
+ - rocRAND
+ - hipRAND
+ - rocFFT
+ - hipBLAS-common
+ - roctracer
+ - rocm_smi_lib
+ - openmp
+ - hipBLASLt
+ - amdsmi
+ - rocBLAS
+ - rocPRIM
+ - rocSPARSE
+ - hipSPARSE
+ - ROCmValidationSuite
+ - HIPIFY
+ - rccl
+ - hipFFT
+ - clr
+ - ROCdbgapi
+ - aqlprofile
+ - rocprofiler
+ - rocDecode
+ - rocJPEG
+ - rocprofiler-sdk
+ - rocprofiler-system
+ - half
+ - composable-kernel
+ - rocMLIR
+ - rocSOLVER
+ - hipBLAS
+ - rocThrust
+ - MIOpen
+ - rocALUTION
+ - hipCUB
+ - hipSOLVER
+ - ROCgdb
+ - hipfort
+ - rocm_bandwidth_test
+ - AMDMIGraphX
+ - hipTensor
+ - rocWMMA
+ - rpp
+ - transferbench
+ - MIVisionX
+ - rocAL
+ - rdc
+ - hipDNN
 
 ## Notes
 
