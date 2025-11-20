@@ -5,9 +5,7 @@ These scripts are used to build AMD ROCm on Slackware 15 x86_64 current tree.
 1. Install required packages
 
 A few packages need to be installed, and all of them are required.
-They are located in the 3rd subdirectory:
-
-cpackage-requirements
+They are located in the 3rd subdirectory.
 
 2. Create Python virtual environment
 
