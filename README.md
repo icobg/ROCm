@@ -1,6 +1,6 @@
 # AMD ROCm for Slackware
 
-These scripts are used to build AMD ROCm on Slackware 15 x86_64 current tree.
+These scripts are used to build AMD ROCm version 7.x on Slackware 15 x86_64 current tree.
 
 1. Install required packages
 
@@ -15,6 +15,13 @@ They are located in the 3rd subdirectory.
     pip3 install -r python-requirements
 ```
 
+## Fetching sources
+
+Get the source codes using the fetch-sources.sh script.
+The main idea is to keep the source trees locally on your machine, so that with the next
+release you only fetch the deltas instead of downloading the entire trees again.
+
+
 Follow the build order in file BUILDORDER.md
 
 >[!NOTE]
@@ -22,7 +29,7 @@ Follow the build order in file BUILDORDER.md
 > The compilation process usually takes around 4 days if you build the composable kernel package.
 > Without it, expect about 2.5 days, assuming no errors occur.
 
-## Packages that do not build
+### Packages that do not build
 
 A few ROCm packages fail to compile for various reasons.
 
