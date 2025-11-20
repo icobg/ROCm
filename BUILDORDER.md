@@ -12,7 +12,9 @@ I have removed numbering for clarity.
 ## Core Packages
 
 rocm-core
+
 rocm-cmake
+
 rocm-llvm
 rocm-device-libs
 rocm-comgr
