@@ -1,6 +1,6 @@
 #!/bin/bash
 
-read -p "| Require 64+ GB of RAM memory and few hours |"
+read -p "| Require 64+ GB of RAM memory and 6+ hours |"
 
 set -e
 
@@ -34,16 +34,12 @@ cmake \
     -D YAML_CPP_CLANG_FORMAT_EXE=${ROCM_INSTALL_DIR}/llvm/bin/clang-format \
     -D GPU_BUILD_TARGETS="gfx908;gfx90a;gfx942;gfx950;gfx1100;gfx1101;gfx1103;gfx1150;gfx1151;gfx1200;gfx1201" \
     -D GPU_TARGETS="gfx908;gfx90a;gfx942;gfx950;gfx1100;gfx1101;gfx1103;gfx1150;gfx1151;gfx1200;gfx1201" \
-    -D AMDGPU_TARGETS="gfx908;gfx90a;gfx942;gfx950;gfx1100;gfx1101;gfx1103;gfx1150;gfx1151;gfx1200;gfx1201" \
-    -D Tensile_CPU_THREADS= \
-    -D Tensile_ENABLE_MARKER=ON \
+    -D BUILD_TESTING=OFF \
     -D HIPBLASLT_ENABLE_SAMPLES=OFF \
     -D HIPBLASLT_ENABLE_ROCROLLER=ON \
     -D HIPBLASLT_BUILD_TESTING=OFF \
     -D NB_TEST_FREE_THREADED=OFF \
-    -D CMAKE_POLICY_VERSION_MINIMUM=3.5 \
     -D ROCM_WARN_TOOLCHAIN_VAR=OFF \
-    -D Tensile_CODE_OBJECT_VERSION=default \
     -D BLIS_INCLUDE_DIR=/usr/include/blis \
     -D OpenMP_C_FLAGS="-fopenmp -Wno-unused-command-line-argument" \
     -D OpenMP_C_LIB_NAMES="libomp;libgomp;libiomp5" \

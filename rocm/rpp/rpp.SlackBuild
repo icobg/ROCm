@@ -9,7 +9,7 @@ cd $ROCM_REL_DIR
 PRGNAM=rpp
 
 if [ -d $ROCM_REL_DIR/$PRGNAM ]; then
-    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git checkout ${ROCM_BRANCH} )
+    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git submodule deinit -f --all && git checkout ${ROCM_BRANCH} )
 else
     ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/rpp.git )
 fi
@@ -35,7 +35,6 @@ cmake \
     -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
     -D CMAKE_C_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
     -D BUILD_TESTING=OFF \
-    -D BUILD_WITH_AMD_ADVANCE=ON \
     -D OpenMP_CXX_FLAGS="-fopenmp -Wno-unused-command-line-argument" \
     -D OpenMP_CXX_LIB_NAMES="libomp;libgomp;libiomp5" \
     -D OpenMP_libomp_LIBRARY="/opt/rocm/lib64/libomp.so" \

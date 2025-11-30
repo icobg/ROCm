@@ -2,6 +2,9 @@
 
 These scripts are used to build AMD ROCm version 7.x on Slackware 15 x86_64 current tree.
 
+These are the scripts for version 7.1.1.
+Precompiled packages are available at my repository: [ROCm for Slackware](https://www.ixip.net/rocm)
+
 1. Install required packages
 
 A few packages need to be installed, and all of them are required.
@@ -35,7 +38,8 @@ A few ROCm packages fail to compile for various reasons.
 
 These packages are:
 ```
-none
+rocprofiler-systems
+composable-kernel
 ```
 
 

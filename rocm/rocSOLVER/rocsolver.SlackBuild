@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "This file need to be patched /usr/share/cmake-4.2/Modules/CMakeDetermineHIPCompiler.cmake"
+echo "To be able to found HIP Compiler, but work without the patch"
+echo ""
 read -p "Require 2 hours"
 
 set -e
@@ -35,7 +38,6 @@ cmake \
     -D CMAKE_C_FLAGS="${CXXFLAGS} -DNDEBUG" \
     -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
     -D ROCSOLVER_EMBED_FMT=ON \
-    -D HIP_PATH=${ROCM_INSTALL_DIR} \
     $ROCM_LIBRARIES_DIR/${PRGNAM,,}
 
 "${NINJA:=ninja}" $NUMJOBS || exit 1

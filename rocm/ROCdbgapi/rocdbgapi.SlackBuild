@@ -9,7 +9,7 @@ PRGNAM=ROCdbgapi
 cd $ROCM_REL_DIR
 
 if [ -d $ROCM_REL_DIR/$PRGNAM ]; then
-    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git checkout ${ROCM_BRANCH} )
+    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git submodule deinit -f --all && git checkout ${ROCM_BRANCH} )
 else
     ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/ROCdbgapi.git )
 fi
@@ -29,6 +29,10 @@ pushd .
 cmake \
     -Wno-dev \
     -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+    -D CMAKE_CXX_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
+    -D CMAKE_C_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
     -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
     $ROCM_REL_DIR/$PRGNAM
 

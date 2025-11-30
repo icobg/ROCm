@@ -9,15 +9,16 @@ PRGNAM=ROCmValidationSuite
 cd $ROCM_REL_DIR
 
 if [ -d $ROCM_REL_DIR/$PRGNAM ]; then
-    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git checkout ${ROCM_BRANCH} )
+    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git submodule deinit -f --all && git checkout ${ROCM_BRANCH} )
 else
     ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/ROCmValidationSuite.git )
 fi
 
-( cd $ROCM_REL_DIR/$PRGMAM
-patch -Np1 -i $CWD/../../patches/no_mxDataGenerator_download.patch
-patch -Np1 -i $CWD/../../patches/fix_int_to_index.patch
-)
+
+wget https://raw.githubusercontent.com/icobg/ROCm/refs/heads/main/patches/no_mxDataGenerator_download.patch
+wget https://raw.githubusercontent.com/icobg/ROCm/refs/heads/main/patches/fix_int_to_index.patch
+
+( cd $PRGNAM && patch -Np1 -i $ROCM_REL_DIR/no_mxDataGenerator_download.patch && patch -Np1 -i $ROCM_REL_DIR/fix_int_to_index.patch )
 
 rm -rf $ROCM_BUILD_DIR/$PRGNAM
 mkdir -p $ROCM_BUILD_DIR/$PRGNAM

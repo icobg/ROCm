@@ -16,7 +16,7 @@ NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
 BUILD=1
 rm -rf $DEST
 
-BASE_CLANG_DIR=$ROCM_INSTALL_DIR/lib/clang
+BASE_CLANG_DIR=$ROCM_INSTALL_DIR/lib/llvm/lib/clang
 export NEWEST_CLANG_VER=$(ls -1 $BASE_CLANG_DIR | sort -V | tail -n 1)
 
 pushd .

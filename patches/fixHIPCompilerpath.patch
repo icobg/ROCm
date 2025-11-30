@@ -1,0 +1,16 @@
+--- a/CMakeDetermineHIPCompiler.cmake	2025-11-30 09:45:08.611046850 +0200
++++ b/CMakeDetermineHIPCompiler.cmake	2025-11-30 09:42:02.655512215 +0200
+@@ -221,10 +221,9 @@
+   unset(_CMAKE_HIP_COMPILER_ID_IMPLICIT_LOG)
+ 
+   if(NOT CMAKE_HIP_COMPILER_ROCM_LIB)
+-    set(_CMAKE_HIP_COMPILER_ROCM_LIB_DIRS
+-      "${CMAKE_HIP_COMPILER_ROCM_ROOT}/lib"
+-      "${CMAKE_HIP_COMPILER_ROCM_ROOT}/lib64"
+-      )
++    get_filename_component(_rocm_root "${CMAKE_HIP_COMPILER_ROCM_ROOT}" DIRECTORY)
++    set(_CMAKE_HIP_COMPILER_ROCM_LIB_DIRS "${CMAKE_HIP_COMPILER_ROCM_ROOT}/cmake/hip-lang" "${_rocm_root}/lib64/cmake/hip-lang" "${_rocm_root}/lib/cmake/hip-lang")
++    set(CMAKE_HIP_COMPILER_ROCM_LIB "${CMAKE_HIP_COMPILER_ROCM_ROOT}")
+     if(CMAKE_HIP_LIBRARY_ARCHITECTURE)
+       list(APPEND _CMAKE_HIP_COMPILER_ROCM_LIB_DIRS "${CMAKE_HIP_COMPILER_ROCM_ROOT}/lib/${CMAKE_HIP_LIBRARY_ARCHITECTURE}")
+     endif()

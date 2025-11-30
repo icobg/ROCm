@@ -9,10 +9,11 @@ PRGNAM=half
 cd $ROCM_REL_DIR
 
 if [ -d $ROCM_REL_DIR/$PRGNAM ]; then
-    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git checkout ${ROCM_BRANCH} )
+    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git submodule deinit -f --all && git checkout ${ROCM_BRANCH} )
 else
     ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/half.git )
 fi
+
 
 rm -rf $ROCM_BUILD_DIR/$PRGNAM
 mkdir -p $ROCM_BUILD_DIR/$PRGNAM

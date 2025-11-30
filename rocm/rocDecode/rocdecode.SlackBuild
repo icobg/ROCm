@@ -9,10 +9,17 @@ cd $ROCM_REL_DIR
 PRGNAM=rocDecode
 
 if [ -d $ROCM_REL_DIR/$PRGNAM ]; then
-    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git checkout ${ROCM_BRANCH} )
+    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git submodule deinit -f --all && git checkout ${ROCM_BRANCH} )
 else
     ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/rocDecode.git )
 fi
+
+
+#wget https://github.com/ROCm/$PRGNAM/archive/rocm-$PKGVER.tar.gz
+#wget https://www.ixip.net/rocm/ffmpeg7.patch
+#tar xf $PRGNAM-$LDIR.tar.gz
+#cd $PRGNAM-$LDIR
+#patch -Np1 -i $ROCM_REL_DIR/ffmpeg7.patch
 
 
 rm -rf $ROCM_BUILD_DIR/$PRGNAM
@@ -39,6 +46,10 @@ cmake \
 
 "${NINJA:=ninja}" $NUMJOBS || exit 1
 DESTDIR=$DEST "$NINJA" install/strip || exit 1
+
+#cmake --build . $NUMJOBS
+#DESTDIR=$DEST cmake --install .
+
 
 mkdir -p $DEST/install
 cat $CWD/slack-desc > $DEST/install/slack-desc

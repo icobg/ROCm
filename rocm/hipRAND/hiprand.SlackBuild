@@ -8,7 +8,7 @@ source $CWD/../../rocm-environment.sh
 PRGNAM=hipRAND
 cd $ROCM_REL_DIR
 
-cd $ROCM_LIBRARIES_DIR/$PRGNAM
+cd $ROCM_LIBRARIES_DIR/${PRGNAM,,}
 sed -i 's|/hip/bin|/bin|g' toolchain-linux.cmake
 
 rm -rf $ROCM_BUILD_DIR/$PRGNAM

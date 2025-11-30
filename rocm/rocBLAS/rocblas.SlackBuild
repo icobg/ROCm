@@ -1,6 +1,6 @@
 #!/bin/bash
 
-read -p "Taking few hours"
+read -p "Taking 2+ hours"
 
 if [[ ! -z "${VIRTUAL_ENV}" ]]; then
     printf "\n Deactivate your Python virtual environment \n"
@@ -50,8 +50,6 @@ cmake \
     -D TENSILE_USE_OPENMP=ON \
     -D TENSILE_VENV_UPGRADE_PIP=ON \
     -D Tensile_LIBRARY_FORMAT=yaml \
-    -D TENSILE_ROCM_OFFLOAD_BUNDLER_PATH=${ROCM_INSTALL_DIR}/llvm/bin/clang-offload-bundler \
-    -D TENSILE_GPU_ARCHS="gfx900;gfx90a;gfx942;gfx1030;gfx1100;gfx1101;gfx1102;gfx1200;gfx1201" \
     -D Tensile_ARCHITECTURE="gfx900;gfx90a;gfx942;gfx1030;gfx1100;gfx1101;gfx1102;gfx1200;gfx1201" \
     -G "Unix Makefiles" \
     $ROCM_LIBRARIES_DIR/${PRGNAM,,}

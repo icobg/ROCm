@@ -9,7 +9,7 @@ PRGNAM=rocMLIR
 cd $ROCM_REL_DIR
 
 if [ -d $ROCM_REL_DIR/$PRGNAM ]; then
-    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git checkout ${ROCM_BRANCH} )
+    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git submodule deinit -f --all && git checkout ${ROCM_BRANCH} )
 else
     ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/rocMLIR.git )
 fi
@@ -38,7 +38,6 @@ cmake \
     -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
     -D CMAKE_C_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
     -D BUILD_FAT_LIBROCKCOMPILER=ON \
-    -D BENCHMARK_ENABLE_ASSEMBLY_TEST=OFF \
     -D BENCHMARK_INSTALL_DOCS=OFF \
     -D BENCHMARK_USE_BUNDLED_GTEST=OFF \
     -D LLVM_BUILD_EXAMPLES=OFF \
@@ -47,8 +46,6 @@ cmake \
     -D LLVM_INCLUDE_TESTS=OFF \
     -D MLIR_ENABLE_VULKAN_RUNNER=ON \
     -D MLIR_INCLUDE_TESTS=OFF \
-    -D GPU_BUILD_TARGETS=$AMDGPU_TARGETS \
-    -D GPU_TARGETS=$AMDGPU_TARGETS \
     $ROCM_REL_DIR/${PRGNAM}
 
 "${NINJA:=ninja}" $NUMJOBS || exit 1
