@@ -34,6 +34,7 @@ I have removed numbering for clarity.
  - rocPRIM
  - rocSPARSE
  - hipSPARSE
+ - hipSPARSELt
  - ROCmValidationSuite
  - HIPIFY
  - rccl
