@@ -1,0 +1,12 @@
+Boost
+rocm-llvm
+rocm-cmake
+rocr-runtime
+hip-runtime-amd
+rocm-device-libs
+rocm-comgr
+rocsparse
+rocm_smi
+rocTracer
+msgpack-cxx
+hipsparse
