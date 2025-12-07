@@ -69,7 +69,7 @@ I have removed numbering for clarity.
  - rocAL
  - rdc
  - hipDNN
-
+ - PyTorch
 ## Notes
 
 - Follow this order carefully to avoid missing dependencies.

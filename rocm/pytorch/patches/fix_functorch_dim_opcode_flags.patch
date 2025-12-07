@@ -1,0 +1,21 @@
+--- a/functorch/CMakeLists.txt	2025-12-07 11:52:59.086042094 +0200
++++ b/functorch/CMakeLists.txt	2025-12-07 11:53:40.718238187 +0200
+@@ -9,6 +9,18 @@
+ file(GLOB_RECURSE FT_SOURCES ${FT_DIR}/*.cpp ${FT_DIR}/*.c)
+ 
+ add_library(${PROJECT_NAME} MODULE ${FT_SOURCES})
++
++# -----------------------------------------------------------------------------
++# FIX: dim_opcode.c is a C file and must *not* inherit global -std=c++17 flags.
++#      ROCm amdclang rejects mixing C and C++17.
++#      Compile it using standard C instead.
++# -----------------------------------------------------------------------------
++set_source_files_properties(
++    ${CMAKE_CURRENT_SOURCE_DIR}/csrc/dim/dim_opcode.c
++    PROPERTIES COMPILE_FLAGS "-std=gnu11"
++)
++# -----------------------------------------------------------------------------
++
+ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+ target_compile_definitions(${PROJECT_NAME} PRIVATE FUNCTORCH_BUILD_MAIN_LIB)
+ target_compile_definitions(${PROJECT_NAME} PRIVATE TORCH_EXTENSION_NAME=_C)

@@ -1,0 +1,231 @@
+#!/bin/bash
+
+# Slackware build script for pytorch
+
+# Copyright 2025  Condor, Bulgaria
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+if [[ ! -z "${VIRTUAL_ENV}" ]]; then
+    printf "\n Deactivate your Python virtual environment \n"
+    read
+    exit 1
+fi
+
+if [[ $(whoami) == root ]]; then
+    printf "\n Don't use root \n"
+    read
+    exit 1
+fi
+
+set -e
+
+cd $(dirname $0) ; CWD=$(pwd)
+
+PRGNAM=pytorch
+VERSION=${VERSION:-2.9}
+PYTORCH_BRANCH=release/$VERSION
+BUILD=${BUILD:-1}
+TAG=${TAG:-condor}
+PKGTYPE=${PKGTYPE:-txz}
+TMP=${TMP:-/tmp/condor}
+PKG=$TMP/package-$PRGNAM
+OUTPUT=${OUTPUT:-/tmp}
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+
+export ROCM_INSTALL_DIR=/opt/rocm
+export LIBRARY_PATH=$ROCM_INSTALL_DIR/lib:$LIBRARY_PATH
+export LD_LIBRARY_PATH=$ROCM_INSTALL_DIR/lib:$LD_LIBRARY_PATH
+export PATH=$ROCM_INSTALL_DIR/bin:$ROCM_INSTALL_DIR/llvm/bin:$ROCM_INSTALL_DIR/hip/bin:$CMAKE_DIR/bin:$PATH
+export LDFLAGS="-L${PKG}/usr/lib64 $LDFLAGS"
+export LD_LIBRARY_PATH="${PKG}/usr/lib64:$LD_LIBRARY_PATH"
+
+mkdir -p $TMP
+cd $TMP
+
+if [ -d $TMP/$PRGNAM ]; then
+    ( cd $TMP/$PRGNAM && \
+    git clean -f -d && \
+    git reset --hard HEAD && \
+    git fetch --all --tags && \
+    git submodule deinit -f --all && \
+    git checkout ${PYTORCH_BRANCH} && \
+    git submodule sync && \
+    git submodule update --init --recursive --force --jobs 4 && \
+    python tools/amd_build/build_amd.py
+    )
+else
+    ( cd $TMP && \
+    git clone --jobs 4 --branch ${PYTORCH_BRANCH} https://github.com/ROCm/$PRGNAM.git && \
+    cd $PRGNAM && \
+    git submodule sync && \
+    git submodule update --init --recursive --force --jobs 4 && \
+    python tools/amd_build/build_amd.py
+    )
+fi
+
+# This is no sense because I build ROCm only for x86_64
+if [ -z "$ARCH" ]; then
+  case "$( uname -m )" in
+    i?86) ARCH=i586 ;;
+    arm*) ARCH=arm ;;
+       *) ARCH=$( uname -m ) ;;
+  esac
+fi
+
+if [ "$ARCH" = "i586" ]; then
+  SLKCFLAGS="-O2 -march=i586 -mtune=i686"
+elif [ "$ARCH" = "i686" ]; then
+  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+elif [ "$ARCH" = "aarch64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  LIBDIRSUFFIX="64"
+elif [ "$ARCH" = "x86_64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  LIBDIRSUFFIX="64"
+elif [ "$ARCH" = "arm" ]; then
+  SLKCFLAGS="-O2 -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard"
+else
+  SLKCFLAGS="-O2"
+fi
+
+rm -rf $PKG
+mkdir -p $TMP $PKG $OUTPUT
+cd $TMP
+
+# Createing virtual environment
+# this may be is a good idea to be pre stage of building
+rm -rf pytorchvirt
+python -m venv pytorchvirt
+source $TMP/pytorchvirt/bin/activate
+
+if [[ -z "${VIRTUAL_ENV}" ]]; then
+    printf "\n Python virtual environment it's not activated!\n"
+    read
+    exit 1
+fi
+
+cd $TMP/$PRGNAM
+pip install --upgrade pip
+pip install installer
+pip install setuptools
+pip install -r requirements.txt
+pip install -r requirements-build.txt
+
+# Fix cmake libdir location
+sed -i c10/CMakeLists.txt \
+  -e "s;DESTINATION lib;DESTINATION lib$LIBDIRSUFFIX;g"
+
+# Apply patches
+if [ -e $CWD/patches/ ]; then
+  if [ -e $CWD/patches/series ]; then
+    for PATCH in $(cat $CWD/patches/series); do
+      patch -Np1 -i $CWD/patches/$PATCH
+    done
+  else
+    for PATCH in $CWD/patches/*.patch; do
+      patch -Np1 -i $PATCH
+    done
+  fi
+fi
+
+TMP_DIR=tmpxxx
+mkdir -p build
+cd build
+cmake \
+  -Wno-dev \
+  -G Ninja \
+  -D CMAKE_BUILD_TYPE=Release \
+  -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+  -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+  -D CMAKE_CXX_FLAGS="$SLKCFLAGS -I${ROCM_INSTALL_DIR}/include -Wno-error=unused-command-line-argument" \
+  -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+  -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
+  -D CMAKE_C_FLAGS="$SLKCFLAGS -I${ROCM_INSTALL_DIR}/include -Wno-error=unused-command-line-argument" \
+  -D CMAKE_INCLUDE_PATH=${ROCM_INSTALL_DIR}/llvm/include \
+  -D YAML_CPP_CLANG_FORMAT_EXE=${ROCM_INSTALL_DIR}/llvm/bin/clang-format \
+  -D OpenMP_C_FLAGS="-fopenmp -Wno-unused-command-line-argument -I${ROCM_INSTALL_DIR}/include" \
+  -D OpenMP_C_LIB_NAMES="libomp;libgomp;libiomp5" \
+  -D OpenMP_CXX_FLAGS="-fopenmp -Wno-unused-command-line-argument -I${ROCM_INSTALL_DIR}/include" \
+  -D OpenMP_CXX_LIB_NAMES="libomp;libgomp;libiomp5" \
+  -D OpenMP_libomp_LIBRARY="${ROCM_INSTALL_DIR}/lib/libomp.so" \
+  -D OpenMP_libgomp_LIBRARY="${ROCM_INSTALL_DIR}/lib/libgomp.so" \
+  -D OpenMP_libiomp5_LIBRARY="${ROCM_INSTALL_DIR}/lib/libiomp5.so" \
+  -D CMAKE_INSTALL_PREFIX="${PKG}/usr" \
+  -D LIBSHM_INSTALL_LIB_SUBDIR="lib${LIBDIRSUFFIX}" \
+  -D TORCH_INSTALL_LIB_DIR="lib${LIBDIRSUFFIX}" \
+  -D PYTHON_EXECUTABLE=$(which python3) \
+  -D BUILD_BINARY=ON \
+  -D BUILD_PYTHON=True \
+  -D BUILD_TEST=OFF \
+  -D USE_VULKAN=ON \
+  -D USE_GLOO=OFF  \
+  -D BUILD_TESTING=OFF \
+  -D USE_NUMPY=True \
+  -D USE_OPENCL=ON \
+  -D USE_OPENMP=ON \
+  -D BLAS=OpenBLAS \
+  -D CPUINFO_BUILD_TOOLS=ON \
+  -D CMAKE_C_STANDARD=11 \
+  -D CMAKE_CXX_STANDARD=17 \
+  -D BUILD_CUSTOM_PROTOBUF=OFF \
+  -D CAFFE2_LINK_LOCAL_PROTOBUF=OFF \
+  -D FMT_INSTALL=OFF \
+   ..
+
+"${NINJA:=ninja}" $NUMJOBS || exit 1
+DESTDIR=$TMP_DIR "$NINJA" install/strip || exit 1
+
+mkdir -p $PKG/usr/{share,lib$LIBDIRSUFFIX}
+mv $TMP_DIR/${PKG}/usr/bin $PKG/usr
+mv $TMP_DIR/${PKG}/usr/include $PKG/usr
+mv $TMP_DIR/${PKG}/usr/share/cmake $PKG/usr/share
+#mv $TMP_DIR/${PKG}/usr/lib$LIBDIRSUFFIX/*.so $PKG/usr/lib$LIBDIRSUFFIX
+#mv $TMP_DIR/${PKG}/usr/lib/*.so $PKG/usr/lib$LIBDIRSUFFIX
+mv "$TMP_DIR/$PKG/usr/lib"{,"$LIBDIRSUFFIX"}/*.so "$PKG/usr/lib64/" 2>/dev/null
+mv $TMP_DIR/$TMP/pytorch/functorch/functorch.so $PKG/usr/share
+find $TMP_DIR -empty -type d -delete
+cd ..
+
+python3 setup.py bdist_wheel
+pip install dist/*.whl --root="$PKG" --prefix=/usr
+
+# I'm not sure if that's really necessary
+#SITE="$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')"
+#mkdir -p $PKG/$SITE/torch/{bin,lib}
+#( cd "$PKG/$SITE/torch/bin" || exit
+#  ln -sf "../../../bin/torch_shm_manager" torch_shm_manager
+#)
+#( cd "$PKG/$SITE/torch/lib" || exit
+#  ln -sf "../../../../lib$LIBDIRSUFFIX/libtorch_global_deps.so" libtorch_global_deps.so
+#)
+
+find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+  | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
+cp -a LICENSE NOTICE *.md $PKG/usr/doc/$PRGNAM-$VERSION
+cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
+
+mkdir -p $PKG/install
+cat $CWD/slack-desc > $PKG/install/slack-desc
+
+cd $PKG
+/sbin/makepkg -l y -c n $OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.$PKGTYPE

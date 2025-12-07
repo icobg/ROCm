@@ -1,0 +1,23 @@
+--- a/torch/CMakeLists.txt	2025-12-07 11:49:35.116071050 +0200
++++ b/torch/CMakeLists.txt	2025-12-07 11:51:11.507532100 +0200
+@@ -319,6 +319,20 @@
+ 
+ 
+ add_library(torch_python SHARED ${TORCH_PYTHON_SRCS})
++
++# -----------------------------------------------------------------------------
++# FIX: cpython_defs.c and eval_frame.c must compile as pure C, not C++,
++#       and must NOT receive the global -std=c++17 flags (amdclang rejects C++17 for C files).
++#       Python 3.12 internal API requires C11/C99 semantics.
++# -----------------------------------------------------------------------------
++set_source_files_properties(
++    ${TORCH_SRC_DIR}/csrc/dynamo/cpython_defs.c
++    ${TORCH_SRC_DIR}/csrc/dynamo/eval_frame.c
++    PROPERTIES
++        COMPILE_FLAGS "-std=gnu11"
++)
++# -----------------------------------------------------------------------------
++
+ torch_compile_options(torch_python)  # see cmake/public/utils.cmake
+ if(APPLE)
+   target_compile_options(torch_python PRIVATE
