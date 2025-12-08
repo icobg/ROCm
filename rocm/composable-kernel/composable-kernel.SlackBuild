@@ -36,11 +36,12 @@ cmake \
     -D CMAKE_HIP_ARCHITECTURES=$AMDGPU_TARGETS \
     -D OpenMP_CXX_FLAGS="-fopenmp -Wno-unused-command-line-argument" \
     -D OpenMP_CXX_LIB_NAMES="libomp;libgomp;libiomp5" \
-    -D OpenMP_libomp_LIBRARY="/opt/rocm/lib/libomp.so" \
-    -D OpenMP_libgomp_LIBRARY="/opt/rocm/lib/libgomp.so" \
-    -D OpenMP_libiomp5_LIBRARY="/opt/rocm/lib/libiomp5.so" \
+    -D OpenMP_libomp_LIBRARY="${ROCM_INSTALL_DIR}/lib/libomp.so" \
+    -D OpenMP_libgomp_LIBRARY="${ROCM_INSTALL_DIR}/lib/libgomp.so" \
+    -D OpenMP_libiomp5_LIBRARY="${ROCM_INSTALL_DIR}/lib/libiomp5.so" \
     -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
     -D CMAKE_HIP_FLAGS="-Wno-missing-include-dirs" \
+    -D GPU_TARGETS="gfx908;gfx90a;gfx942;gfx1030;gfx1100;gfx1101;gfx1102;gfx1200;gfx1201" \
     -D BUILD_DEV=OFF \
     -D BUILD_TESTING=OFF \
     -D CMAKE_POSITION_INDEPENDENT_CODE=ON \

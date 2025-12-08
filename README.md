@@ -39,7 +39,6 @@ A few ROCm packages fail to compile for various reasons.
 These packages are:
 ```
 rocprofiler-systems
-composable-kernel
 ```
 
 
