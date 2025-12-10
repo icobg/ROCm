@@ -205,6 +205,8 @@ find $TMP_DIR -empty -type d -delete
 cd ..
 
 python3 setup.py bdist_wheel
+# This package is part of the Slackware tree
+rm dist/setuptools*.whl
 pip install dist/*.whl --root="$PKG" --prefix=/usr
 
 # I'm not sure if that's really necessary
