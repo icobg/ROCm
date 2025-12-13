@@ -37,9 +37,9 @@ cmake \
     -D CMAKE_C_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
     -D OpenMP_CXX_FLAGS="-fopenmp -Wno-unused-command-line-argument" \
     -D OpenMP_CXX_LIB_NAMES="libomp;libgomp;libiomp5" \
-    -D OpenMP_libomp_LIBRARY="/opt/rocm/lib64/libomp.so" \
-    -D OpenMP_libgomp_LIBRARY="/opt/rocm/lib64/libgomp.so" \
-    -D OpenMP_libiomp5_LIBRARY="/opt/rocm/lib64/libiomp5.so" \
+    -D OpenMP_libomp_LIBRARY="${ROCM_INSTALL_DIR}/lib64/libomp.so" \
+    -D OpenMP_libgomp_LIBRARY="${ROCM_INSTALL_DIR}/lib64/libgomp.so" \
+    -D OpenMP_libiomp5_LIBRARY="${ROCM_INSTALL_DIR}/lib64/libiomp5.so" \
     -D ROCWMMA_BUILD_SAMPLES=OFF \
     -D ROCWMMA_BUILD_TESTS=OFF \
     -D CMAKE_POLICY_VERSION_MINIMUM=3.5 \

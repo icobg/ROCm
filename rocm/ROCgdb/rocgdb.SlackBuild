@@ -26,7 +26,7 @@ rm -rf $DEST
 
 pushd .
 
-export PKG_CONFIG_PATH="/opt/rocm/share/pkgconfig:$PKG_CONFIG_PATH"
+export PKG_CONFIG_PATH="${ROCM_INSTALL_DIR}/share/pkgconfig:$PKG_CONFIG_PATH"
 LDFLAGS="-Wl,--enable-new-dtags,-rpath=$ROCM_INSTALL_DIR/lib" $ROCM_REL_DIR/$PRGNAM/configure \
         --prefix=$ROCM_INSTALL_DIR \
         --program-prefix=roc \

@@ -43,9 +43,9 @@ mkdir -p $DEST/install
 cat $CWD/slack-desc > $DEST/install/slack-desc
 
 mkdir -p $DEST/usr/lib64
-ln -s /opt/rocm/lib64/libhsa-runtime64.so $DEST/usr/lib64/libhsa-runtime64.so
-ln -s /opt/rocm/lib64/libhsa-runtime64.so.1 $DEST/usr/lib64/libhsa-runtime64.so.1
-ln -s /opt/rocm/lib64/libhsa-runtime64.so.1.18.0 $DEST/usr/lib64/libhsa-runtime64.so.1.18.0
+ln -s ${ROCM_INSTALL_DIR}/lib64/libhsa-runtime64.so $DEST/usr/lib64/libhsa-runtime64.so
+ln -s ${ROCM_INSTALL_DIR}/lib64/libhsa-runtime64.so.1 $DEST/usr/lib64/libhsa-runtime64.so.1
+ln -s ${ROCM_INSTALL_DIR}/lib64/libhsa-runtime64.so.1.18.0 $DEST/usr/lib64/libhsa-runtime64.so.1.18.0
 
 cd $DEST
 makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz

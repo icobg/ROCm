@@ -49,9 +49,9 @@ cmake \
     -D OpenMP_C_LIB_NAMES="libomp;libgomp;libiomp5" \
     -D OpenMP_CXX_FLAGS="-fopenmp -Wno-unused-command-line-argument" \
     -D OpenMP_CXX_LIB_NAMES="libomp;libgomp;libiomp5" \
-    -D OpenMP_libomp_LIBRARY="/opt/rocm/lib/libomp.so" \
-    -D OpenMP_libgomp_LIBRARY="/opt/rocm/lib/libgomp.so" \
-    -D OpenMP_libiomp5_LIBRARY="/opt/rocm/lib/libiomp5.so" \
+    -D OpenMP_libomp_LIBRARY="${ROCM_INSTALL_DIR}/lib/libomp.so" \
+    -D OpenMP_libgomp_LIBRARY="${ROCM_INSTALL_DIR}/lib/libgomp.so" \
+    -D OpenMP_libiomp5_LIBRARY="${ROCM_INSTALL_DIR}/lib/libiomp5.so" \
     -D rocblas_DIR=${ROCM_INSTALL_DIR}/lib64/cmake/rocblas \
     $ROCM_REL_DIR/$PRGNAM
 

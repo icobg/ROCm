@@ -42,9 +42,9 @@ DESTDIR=$DEST "$NINJA" install/strip || exit 1
 
 #Linking comgr to /usr/lib64
 mkdir -p $DEST/usr/lib64
-ln -s /opt/rocm/lib64/libamd_comgr.so $DEST/usr/lib64/libamd_comgr.so
-ln -s /opt/rocm/lib64/libamd_comgr.so.3 $DEST/usr/lib64/libamd_comgr.so.3
-ln -s /opt/rocm/lib64/libamd_comgr.so.3.$ROCM_VERSION $DEST/usr/lib64/libamd_comgr.so.3.0.$ROCM_VERSION
+ln -s ${ROCM_INSTALL_DIR}/lib64/libamd_comgr.so $DEST/usr/lib64/libamd_comgr.so
+ln -s ${ROCM_INSTALL_DIR}/lib64/libamd_comgr.so.3 $DEST/usr/lib64/libamd_comgr.so.3
+ln -s ${ROCM_INSTALL_DIR}/lib64/libamd_comgr.so.3.$ROCM_VERSION $DEST/usr/lib64/libamd_comgr.so.3.0.$ROCM_VERSION
 
 mkdir -p $DEST/install
 cat $CWD/slack-desc > $DEST/install/slack-desc
