@@ -16,13 +16,13 @@ else
     ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/llvm-project.git )
 fi
 
-wget https://raw.githubusercontent.com/icobg/ROCm/refs/heads/main/patches/130334.diff
-wget https://raw.githubusercontent.com/icobg/ROCm/refs/heads/main/patches/platform_limits_posix.patch
+#wget https://raw.githubusercontent.com/icobg/ROCm/refs/heads/main/patches/130334.diff
+#wget https://raw.githubusercontent.com/icobg/ROCm/refs/heads/main/patches/platform_limits_posix.patch
 
-cd llvm-project
+#cd llvm-project
 
-patch -Np1 -i $ROCM_REL_DIR/130334.diff
-patch -Np1 -i $ROCM_REL_DIR/platform_limits_posix.patch
+#patch -Np1 -i $ROCM_REL_DIR/130334.diff
+#patch -Np1 -i $ROCM_REL_DIR/platform_limits_posix.patch
 
 rm -rf $ROCM_BUILD_DIR/llvm-amdgpu
 mkdir -p $ROCM_BUILD_DIR/llvm-amdgpu

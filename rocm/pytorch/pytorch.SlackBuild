@@ -209,7 +209,7 @@ python3 setup.py bdist_wheel
 rm dist/setuptools*.whl
 pip install dist/*.whl --root="$PKG" --prefix=/usr
 
-# I'm not sure if that's really necessary
+# I'm not sure if that's really necessary, I found it over the network
 #SITE="$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')"
 #mkdir -p $PKG/$SITE/torch/{bin,lib}
 #( cd "$PKG/$SITE/torch/bin" || exit

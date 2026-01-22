@@ -15,6 +15,10 @@ else
     ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/amdsmi.git )
 fi
 
+curl -L https://patch-diff.githubusercontent.com/raw/ROCm/amdsmi/pull/165.patch \
+  -o backport-remove-drm_color_ctm.patch
+
+( cd $ROCM_REL_DIR/$PRGNAM && patch -Np1 -i ../backport-remove-drm_color_ctm.patch )
 
 rm -rf $ROCM_BUILD_DIR/$PRGNAM
 mkdir -p $ROCM_BUILD_DIR/$PRGNAM
@@ -38,6 +42,12 @@ cmake \
 
 "${NINJA:=ninja}" $NUMJOBS || exit 1
 DESTDIR=$DEST "$NINJA" install/strip || exit 1
+cd py-interface/python_package
+python -m build --wheel --no-isolation
+python -m installer --destdir="$DEST" dist/*.whl
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+mv $DEST/usr/lib/ $DEST/usr/lib64
 
 mkdir -p $DEST/install
 cat $CWD/slack-desc > $DEST/install/slack-desc
