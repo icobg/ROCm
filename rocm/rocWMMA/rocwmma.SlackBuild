@@ -2,19 +2,11 @@
 
 set -e
 
-read -p "After 7.1 the project is moved to library"
-
 CWD=$(pwd)
 source $CWD/../../rocm-environment.sh
 
 PRGNAM=rocWMMA
 cd $ROCM_REL_DIR
-
-if [ -d $ROCM_REL_DIR/$PRGNAM ]; then
-    ( cd $ROCM_REL_DIR/$PRGNAM && git clean -f -d && git reset --hard HEAD && git fetch --all --tags && git submodule deinit -f --all && git checkout ${ROCM_BRANCH} )
-else
-    ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/rocWMMA.git )
-fi
 
 rm -rf $ROCM_BUILD_DIR/$PRGNAM
 mkdir -p $ROCM_BUILD_DIR/$PRGNAM
@@ -43,13 +35,10 @@ cmake \
     -D ROCWMMA_BUILD_SAMPLES=OFF \
     -D ROCWMMA_BUILD_TESTS=OFF \
     -D CMAKE_POLICY_VERSION_MINIMUM=3.5 \
-    $ROCM_REL_DIR/${PRGNAM}
+    $ROCM_LIBRARIES_DIR/${PRGNAM,,}
 
 "${NINJA:=ninja}" $NUMJOBS || exit 1
 DESTDIR=$DEST "$NINJA" install/strip || exit 1
-
-#cmake --build . $NUMJOBS
-#DESTDIR=$DEST cmake --install .
 
 mkdir -p $DEST/install
 cat $CWD/slack-desc > $DEST/install/slack-desc
