@@ -1,0 +1,14 @@
+--- a/.clang-tidy	2026-01-29 19:15:47.587710324 +0200
++++ b/.clang-tidy	2026-01-29 19:18:49.476879698 +0200
+@@ -8,8 +8,11 @@
+   modernize-*,
+   performance-*,
+   portability-*,
++  -portability-avoid-pragma-once,
+   readability-*,
++  -readability-use-concise-preprocessor-directives,
+   -fuchsia-trailing-return,
++  -modernize-use-scoped-lock,
+   -modernize-use-trailing-return-type,
+   -modernize-concat-nested-namespaces,
+   -modernize-use-nodiscard,

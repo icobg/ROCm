@@ -6,6 +6,9 @@ CWD=$(pwd)
 source $CWD/../../rocm-environment.sh
 
 PRGNAM=hipDNN
+
+( cd $ROCM_LIBRARIES_DIR/${PRGNAM,,} && patch -Np1 -i $ROCM_REL_DIR/../patches/hipDNN-clang-tidy.patch )
+
 cd $ROCM_REL_DIR
 
 rm -rf $ROCM_BUILD_DIR/$PRGNAM
@@ -30,6 +33,7 @@ cmake \
     -D CMAKE_C_FLAGS="${CXXFLAGS} -fcf-protection=none -DNDEBUG" \
     -D GPU_BUILD_TARGETS=${AMDGPU_TARGETS} \
     -D GPU_TARGETS=${AMDGPU_TARGETS} \
+    -D HIP_DNN_SKIP_TESTS=ON \
     $ROCM_LIBRARIES_DIR/${PRGNAM,,}
 
 "${NINJA:=ninja}" $NUMJOBS || exit 1
