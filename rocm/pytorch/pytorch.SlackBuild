@@ -49,6 +49,7 @@ TMP=${TMP:-/tmp/condor}
 PKG=$TMP/package-$PRGNAM
 OUTPUT=${OUTPUT:-/tmp}
 NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+ROCmVer=`cat /opt/rocm/.info/version`
 
 export ROCM_INSTALL_DIR=/opt/rocm
 export LIBRARY_PATH=$ROCM_INSTALL_DIR/lib:$LIBRARY_PATH
@@ -56,6 +57,7 @@ export LD_LIBRARY_PATH=$ROCM_INSTALL_DIR/lib:$LD_LIBRARY_PATH
 export PATH=$ROCM_INSTALL_DIR/bin:$ROCM_INSTALL_DIR/llvm/bin:$ROCM_INSTALL_DIR/hip/bin:$CMAKE_DIR/bin:$PATH
 export LDFLAGS="-L${PKG}/usr/lib64 $LDFLAGS"
 export LD_LIBRARY_PATH="${PKG}/usr/lib64:$LD_LIBRARY_PATH"
+export PYTORCH_ROCM_ARCH="gfx908,gfx90a,gfx942,gfx950,gfx1100,gfx1101,gfx1102,gfx1150,gfx1151,gfx1200,gfx1201"
 
 mkdir -p $TMP
 cd $TMP
@@ -132,6 +134,9 @@ pip install -r requirements-build.txt
 # Fix cmake libdir location
 sed -i c10/CMakeLists.txt \
   -e "s;DESTINATION lib;DESTINATION lib$LIBDIRSUFFIX;g"
+# Fix error: too many arguments provided to function-like macro invocation
+sed -i 's/C10_STRINGIZE(CUDA_ARCH_FLAGS)/C10_STRINGIZE((CUDA_ARCH_FLAGS))/g' \
+  torch/csrc/cuda/Module.cpp
 
 # Apply patches
 if [ -e $CWD/patches/ ]; then
@@ -188,7 +193,8 @@ cmake \
   -D BUILD_CUSTOM_PROTOBUF=OFF \
   -D CAFFE2_LINK_LOCAL_PROTOBUF=OFF \
   -D FMT_INSTALL=OFF \
-   ..
+  -D CUDA_ARCH_FLAGS=${PYTORCH_ROCM_ARCH} \
+  ..
 
 "${NINJA:=ninja}" $NUMJOBS || exit 1
 DESTDIR=$TMP_DIR "$NINJA" install/strip || exit 1
@@ -204,10 +210,15 @@ mv $TMP_DIR/$TMP/pytorch/functorch/functorch.so $PKG/usr/share
 find $TMP_DIR -empty -type d -delete
 cd ..
 
+shopt -s nullglob
+wheels=(dist/*.whl)
+
 python3 setup.py bdist_wheel
 # This package is part of the Slackware tree
 rm dist/setuptools*.whl
-pip install dist/*.whl --root="$PKG" --prefix=/usr
+if (( ${#wheels[@]} )); then
+  pip install "${wheels[@]}" --root="$PKG" --prefix=/usr
+fi
 
 # I'm not sure if that's really necessary, I found it over the network
 #SITE="$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')"
@@ -230,4 +241,4 @@ mkdir -p $PKG/install
 cat $CWD/slack-desc > $PKG/install/slack-desc
 
 cd $PKG
-/sbin/makepkg -l y -c n $OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.$PKGTYPE
+/sbin/makepkg -l y -c n $OUTPUT/$PRGNAM-$VERSION-ROCm-${ROCmVer}-$ARCH-$BUILD$TAG.$PKGTYPE
