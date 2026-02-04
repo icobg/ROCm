@@ -40,7 +40,7 @@ set -e
 cd $(dirname $0) ; CWD=$(pwd)
 
 PRGNAM=pytorch
-VERSION=${VERSION:-2.9}
+VERSION=${VERSION:-2.10}
 PYTORCH_BRANCH=release/$VERSION
 BUILD=${BUILD:-1}
 TAG=${TAG:-condor}
@@ -57,7 +57,11 @@ export LD_LIBRARY_PATH=$ROCM_INSTALL_DIR/lib:$LD_LIBRARY_PATH
 export PATH=$ROCM_INSTALL_DIR/bin:$ROCM_INSTALL_DIR/llvm/bin:$ROCM_INSTALL_DIR/hip/bin:$CMAKE_DIR/bin:$PATH
 export LDFLAGS="-L${PKG}/usr/lib64 $LDFLAGS"
 export LD_LIBRARY_PATH="${PKG}/usr/lib64:$LD_LIBRARY_PATH"
-export PYTORCH_ROCM_ARCH="gfx908,gfx90a,gfx942,gfx950,gfx1100,gfx1101,gfx1102,gfx1150,gfx1151,gfx1200,gfx1201"
+export PYTORCH_ROCM_ARCH="gfx900;gfx906;gfx908;gfx90a;gfx942;gfx1030;gfx1100;gfx1101;gfx1102;gfx1200;gfx1201;gfx950;gfx1150;gfx1151"
+export AMDGPU_TARGETS="gfx90a;gfx942;gfx950;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201"
+export USE_ROCM=1
+export INSTALL_TEST=0
+#export USE_BF16=0
 
 mkdir -p $TMP
 cd $TMP
@@ -151,7 +155,6 @@ if [ -e $CWD/patches/ ]; then
   fi
 fi
 
-TMP_DIR=tmpxxx
 mkdir -p build
 cd build
 cmake \
@@ -193,21 +196,29 @@ cmake \
   -D BUILD_CUSTOM_PROTOBUF=OFF \
   -D CAFFE2_LINK_LOCAL_PROTOBUF=OFF \
   -D FMT_INSTALL=OFF \
-  -D CUDA_ARCH_FLAGS=${PYTORCH_ROCM_ARCH} \
+  -D CMAKE_POLICY_VERSION_MINIMUM=3.5 \
+  -D USE_ROCM_CK_GEMM=OFF \
+  -D USE_ROCM_CK_SDPA=OFF \
+  -D USE_FBGEMM_GENAI=OFF \
   ..
 
 "${NINJA:=ninja}" $NUMJOBS || exit 1
-DESTDIR=$TMP_DIR "$NINJA" install/strip || exit 1
+DESTDIR=$PKG "$NINJA" install/strip || exit 1
 
-mkdir -p $PKG/usr/{share,lib$LIBDIRSUFFIX}
-mv $TMP_DIR/${PKG}/usr/bin $PKG/usr
-mv $TMP_DIR/${PKG}/usr/include $PKG/usr
-mv $TMP_DIR/${PKG}/usr/share/cmake $PKG/usr/share
-#mv $TMP_DIR/${PKG}/usr/lib$LIBDIRSUFFIX/*.so $PKG/usr/lib$LIBDIRSUFFIX
-#mv $TMP_DIR/${PKG}/usr/lib/*.so $PKG/usr/lib$LIBDIRSUFFIX
-mv "$TMP_DIR/$PKG/usr/lib"{,"$LIBDIRSUFFIX"}/*.so "$PKG/usr/lib64/" 2>/dev/null
-mv $TMP_DIR/$TMP/pytorch/functorch/functorch.so $PKG/usr/share
-find $TMP_DIR -empty -type d -delete
+mkdir -p $PKG/usr
+mv $PKG/$TMP/pytorch/torch/lib/cmake $PKG/usr/lib64
+rm -rf $PKG/$TMP/pytorch/torch/lib/cmake
+mv $PKG/$TMP/pytorch/torch/lib/* $PKG/usr/lib64
+mv $PKG/$TMP/pytorch/torch/include $PKG/usr
+mv $PKG/$PKG/usr/bin $PKG/usr
+mv $PKG/$PKG/usr/include/* $PKG/usr/include
+mv $PKG/$PKG/usr/lib/* $PKG/usr/lib64
+mv $PKG/$PKG/usr/lib64/* $PKG/usr/lib64
+mv $PKG/$PKG/usr/share $PKG/usr
+rm -rf $PKG/mnt
+sed -i "s|$PKG||g" $PKG/usr/share/cmake/ATen/ATenConfig.cmake
+mv $PKG/usr/lib64/aotriton $PKG/usr/lib64/cmake
+sed -i "s|$TMP/pytorch/torch/lib/|\${_IMPORT_PREFIX}/lib64/|g" $PKG/usr/lib64/cmake/aotriton/aotriton-targets-release.cmake
 cd ..
 
 shopt -s nullglob
@@ -216,9 +227,13 @@ wheels=(dist/*.whl)
 python3 setup.py bdist_wheel
 # This package is part of the Slackware tree
 rm dist/setuptools*.whl
+deactivate
 if (( ${#wheels[@]} )); then
   pip install "${wheels[@]}" --root="$PKG" --prefix=/usr
 fi
+
+mv $PKG/usr/lib/*.so $PKG/usr/lib64
+rm -rf $PKG/usr/lib
 
 # I'm not sure if that's really necessary, I found it over the network
 #SITE="$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')"
