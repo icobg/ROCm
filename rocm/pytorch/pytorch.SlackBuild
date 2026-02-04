@@ -22,6 +22,7 @@
 #  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+read -p "This project is not easy to build, so I recommend using virtual environment and : pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm7.1"
 
 if [[ ! -z "${VIRTUAL_ENV}" ]]; then
     printf "\n Deactivate your Python virtual environment \n"
