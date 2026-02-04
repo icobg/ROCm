@@ -79,7 +79,7 @@ if [ -d $TMP/$PRGNAM ]; then
     )
 else
     ( cd $TMP && \
-    git clone --jobs 4 --branch ${PYTORCH_BRANCH} https://github.com/ROCm/$PRGNAM.git && \
+    git clone --jobs 4 --branch ${PYTORCH_BRANCH} https://github.com/$PRGNAM/$PRGNAM.git && \
     cd $PRGNAM && \
     git submodule sync && \
     git submodule update --init --recursive --force --jobs 4 && \
