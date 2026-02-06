@@ -216,7 +216,8 @@ mv $PKG/$PKG/usr/include/* $PKG/usr/include
 mv $PKG/$PKG/usr/lib/* $PKG/usr/lib64
 mv $PKG/$PKG/usr/lib64/* $PKG/usr/lib64
 mv $PKG/$PKG/usr/share $PKG/usr
-rm -rf $PKG/mnt
+first_dir="/$(echo "$TMP" | cut -d/ -f2)"
+rm -rf $PKG/$first_dir
 sed -i "s|$PKG||g" $PKG/usr/share/cmake/ATen/ATenConfig.cmake
 mv $PKG/usr/lib64/aotriton $PKG/usr/lib64/cmake
 sed -i "s|$TMP/pytorch/torch/lib/|\${_IMPORT_PREFIX}/lib64/|g" $PKG/usr/lib64/cmake/aotriton/aotriton-targets-release.cmake
@@ -236,15 +237,14 @@ fi
 mv $PKG/usr/lib/*.so $PKG/usr/lib64
 rm -rf $PKG/usr/lib
 
-# I'm not sure if that's really necessary, I found it over the network
-#SITE="$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')"
-#mkdir -p $PKG/$SITE/torch/{bin,lib}
-#( cd "$PKG/$SITE/torch/bin" || exit
-#  ln -sf "../../../bin/torch_shm_manager" torch_shm_manager
-#)
-#( cd "$PKG/$SITE/torch/lib" || exit
-#  ln -sf "../../../../lib$LIBDIRSUFFIX/libtorch_global_deps.so" libtorch_global_deps.so
-#)
+SITE="$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')"
+mkdir -p $PKG/$SITE/torch/{bin,lib}
+( cd "$PKG/$SITE/torch/bin" || exit
+  ln -sf "../../../bin/torch_shm_manager" torch_shm_manager
+)
+( cd "$PKG/$SITE/torch/lib" || exit
+  ln -sf "../../../../lib$LIBDIRSUFFIX/libtorch_global_deps.so" libtorch_global_deps.so
+)
 
 find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
   | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
