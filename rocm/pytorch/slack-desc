@@ -6,7 +6,7 @@
 # customary to leave one space after the ':' except on otherwise blank lines.
 
        |-----handy-ruler------------------------------------------------------|
-pytorch: PyTorch is a Python package that provides two high-level features:
+pytorch: PyTorch is a Python package that provides two high-level features
 pytorch:
 pytorch: Tensor computation (like NumPy) with strong GPU acceleration
 pytorch:
@@ -14,6 +14,6 @@ pytorch: Deep neural networks built on a tape-based autograd system
 pytorch:
 pytorch:
 pytorch:
+pytorch: Check the READ.ME file for instructions
 pytorch:
-pytorch: https://github.com/ROCm/pytorch
 pytorch:
