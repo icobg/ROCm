@@ -22,16 +22,11 @@
 #  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-read -p "This project is not easy to build, so I recommend using virtual environment and : pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm7.1"
+# This project is not easy to build, so I recommend using virtual environment 
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm7.1"
 
 if [[ ! -z "${VIRTUAL_ENV}" ]]; then
     printf "\n Deactivate your Python virtual environment \n"
-    read
-    exit 1
-fi
-
-if [[ $(whoami) == root ]]; then
-    printf "\n Don't use root \n"
     read
     exit 1
 fi
@@ -59,7 +54,6 @@ export PATH=$ROCM_INSTALL_DIR/bin:$ROCM_INSTALL_DIR/llvm/bin:$ROCM_INSTALL_DIR/h
 export LDFLAGS="-L${PKG}/usr/lib64 $LDFLAGS"
 export LD_LIBRARY_PATH="${PKG}/usr/lib64:$LD_LIBRARY_PATH"
 export PYTORCH_ROCM_ARCH="gfx900;gfx906;gfx908;gfx90a;gfx942;gfx1030;gfx1100;gfx1101;gfx1102;gfx1200;gfx1201;gfx950;gfx1150;gfx1151"
-export AMDGPU_TARGETS="gfx90a;gfx942;gfx950;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201"
 export USE_ROCM=1
 export INSTALL_TEST=0
 #export USE_BF16=0
@@ -163,11 +157,7 @@ cmake \
   -G Ninja \
   -D CMAKE_BUILD_TYPE=Release \
   -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
-  -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
-  -D CMAKE_CXX_FLAGS="$SLKCFLAGS -I${ROCM_INSTALL_DIR}/include -Wno-error=unused-command-line-argument" \
   -D CMAKE_C_COMPILER_LAUNCHER=ccache \
-  -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
-  -D CMAKE_C_FLAGS="$SLKCFLAGS -I${ROCM_INSTALL_DIR}/include -Wno-error=unused-command-line-argument" \
   -D CMAKE_INCLUDE_PATH=${ROCM_INSTALL_DIR}/llvm/include \
   -D YAML_CPP_CLANG_FORMAT_EXE=${ROCM_INSTALL_DIR}/llvm/bin/clang-format \
   -D OpenMP_C_FLAGS="-fopenmp -Wno-unused-command-line-argument -I${ROCM_INSTALL_DIR}/include" \
@@ -192,8 +182,6 @@ cmake \
   -D USE_OPENMP=ON \
   -D BLAS=OpenBLAS \
   -D CPUINFO_BUILD_TOOLS=ON \
-  -D CMAKE_C_STANDARD=11 \
-  -D CMAKE_CXX_STANDARD=17 \
   -D BUILD_CUSTOM_PROTOBUF=OFF \
   -D CAFFE2_LINK_LOCAL_PROTOBUF=OFF \
   -D FMT_INSTALL=OFF \
@@ -217,33 +205,35 @@ mv $PKG/$PKG/usr/lib/* $PKG/usr/lib64
 mv $PKG/$PKG/usr/lib64/* $PKG/usr/lib64
 mv $PKG/$PKG/usr/share $PKG/usr
 first_dir="/$(echo "$TMP" | cut -d/ -f2)"
+echo $first_dir $TMP $PKG
 rm -rf $PKG/$first_dir
 sed -i "s|$PKG||g" $PKG/usr/share/cmake/ATen/ATenConfig.cmake
+#echo "${PKG}/usr/share/cmake/ATen/ATenConfig.cmake"
 mv $PKG/usr/lib64/aotriton $PKG/usr/lib64/cmake
 sed -i "s|$TMP/pytorch/torch/lib/|\${_IMPORT_PREFIX}/lib64/|g" $PKG/usr/lib64/cmake/aotriton/aotriton-targets-release.cmake
 cd ..
 
+python3 setup.py bdist_wheel
+# This package is part of the Slackware tree
+rm -f dist/setuptools*.whl
+
 shopt -s nullglob
 wheels=(dist/*.whl)
 
-python3 setup.py bdist_wheel
-# This package is part of the Slackware tree
-rm dist/setuptools*.whl
-deactivate
+#deactivate
+
 if (( ${#wheels[@]} )); then
   pip install "${wheels[@]}" --root="$PKG" --prefix=/usr
 fi
 
-mv $PKG/usr/lib/*.so $PKG/usr/lib64
-rm -rf $PKG/usr/lib
+PY_VER=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
 
-SITE="$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')"
-mkdir -p $PKG/$SITE/torch/{bin,lib}
-( cd "$PKG/$SITE/torch/bin" || exit
-  ln -sf "../../../bin/torch_shm_manager" torch_shm_manager
+mkdir -p $PKG/usr/lib64/python$PY_VER/site-packages/torch/{lib,bin}
+( cd "$PKG/usr/lib64/python$PY_VER/site-packages/torch/lib" || exit
+  ln -sf "/usr/lib$LIBDIRSUFFIX/libtorch_global_deps.so" libtorch_global_deps.so
 )
-( cd "$PKG/$SITE/torch/lib" || exit
-  ln -sf "../../../../lib$LIBDIRSUFFIX/libtorch_global_deps.so" libtorch_global_deps.so
+( cd "$PKG/usr/lib64/python$PY_VER/site-packages/torch/bin" || exit
+  ln -sf "/usr/bin/torch_shm_manager" torch_shm_manager
 )
 
 find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
