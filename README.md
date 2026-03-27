@@ -2,7 +2,7 @@
 
 These scripts are used to build AMD ROCm version 7.x on Slackware 15 x86_64 current tree.
 
-These are the scripts for version 7.2.0.
+These are the scripts for version 7.2.1.
 Precompiled packages are available at my repository: [ROCm for Slackware](https://www.ixip.net/rocm)
 
 1. Install required packages
@@ -40,6 +40,11 @@ These packages are:
 ```
 rocprofiler-systems
 ```
+
+>[!NOTE]
+>
+> Since the current tree (Slackware current tree) is updated quite frequently, if a library stops working,
+> it is sufficient to recompile only rocmprofile-register.
 
 
 Have fun and cheers,
