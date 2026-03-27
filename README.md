@@ -43,7 +43,7 @@ rocprofiler-systems
 
 >[!NOTE]
 >
-> Since the current tree (Slackware current tree) is updated quite frequently, if a library stops working,
+> Since the Slackware current tree is updated quite frequently, if a library stops working,
 > it is sufficient to recompile only rocmprofile-register.
 
 
