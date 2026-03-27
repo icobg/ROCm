@@ -1,0 +1,23 @@
+--- a/flang/lib/Optimizer/Transforms/CMakeLists.txt	2026-03-27 17:10:13.558645922 +0200
++++ b/flang/lib/Optimizer/Transforms/CMakeLists.txt	2026-03-27 17:20:58.428522608 +0200
+@@ -68,3 +68,5 @@
+   MLIROpenACCToLLVMIRTranslation
+   MLIROpenMPDialect
+ )
++
++add_dependencies(FIROptTransformsPassIncGen HLFIROpsIncGen)
+--- a/flang/lib/Support/CMakeLists.txt	2026-03-27 17:10:13.581518020 +0200
++++ b/flang/lib/Support/CMakeLists.txt	2026-03-27 16:08:45.894597907 +0200
+@@ -61,3 +61,12 @@
+   MLIRIR
+   MLIRSupport
+ )
++
++# Ensure HLFIR .inc files are generated before compiling Support
++add_dependencies(FortranSupport HLFIROpsIncGen)
++
++# Ensure the compiler can see the generated .inc files
++target_include_directories(FortranSupport
++  PRIVATE
++    ${CMAKE_BINARY_DIR}/flang/include
++)

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-read -p "Supporting only x86-64 version!"
+read -p "Supporting only x86-64 version!, WARNING: Version 7.2.1 need to disable system flang for compilation mv /usr/include/flang /usr/include/flang.disabled"
 
 set -e
 
@@ -16,12 +16,12 @@ else
     ( cd $ROCM_REL_DIR && git clone --branch ${ROCM_BRANCH} https://github.com/ROCm/llvm-project.git )
 fi
 
-#wget https://raw.githubusercontent.com/icobg/ROCm/refs/heads/main/patches/130334.diff
+wget https://raw.githubusercontent.com/icobg/ROCm/refs/heads/main/patches/7.2.1/0001-Fix-missing-HLFIR-.inc-generation-dependency.patch
 #wget https://raw.githubusercontent.com/icobg/ROCm/refs/heads/main/patches/platform_limits_posix.patch
 
-#cd llvm-project
+cd llvm-project
 
-#patch -Np1 -i $ROCM_REL_DIR/130334.diff
+patch -Np1 -i $ROCM_REL_DIR/0001-Fix-missing-HLFIR-.inc-generation-dependency.patch
 #patch -Np1 -i $ROCM_REL_DIR/platform_limits_posix.patch
 
 rm -rf $ROCM_BUILD_DIR/llvm-amdgpu
@@ -99,5 +99,7 @@ cd $DEST
 #patchelf --set-rpath '$ORIGIN' "$DEST/opt/rocm/lib/llvm/lib/libc++abi.so"
 
 makepkg -l y -c n $OUTPUT/rocm-$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+read -e "Restore flang with mv /usr/include/flang.disabled /usr/include/flang"
 
 popd
