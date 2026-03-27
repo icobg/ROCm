@@ -1,9 +1,10 @@
-python3-build
-python3-packaging
-python3-pep517
-python3-toml
-python3-tomli
-python3-wheel
+build
+packaging
+pep517
+toml
+tomli
+wheel
+CppHeaderParser
 msgpack
 joblib
 Tensile
