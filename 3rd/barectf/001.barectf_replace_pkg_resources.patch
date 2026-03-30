@@ -1,0 +1,29 @@
+--- a/barectf/config_parse_common.py	2023-05-17 02:38:55.000000000 +0300
++++ b/barectf/config_parse_common.py	2026-03-28 18:09:56.630399079 +0200
+@@ -21,7 +21,7 @@
+ # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ 
+-import pkg_resources
++from importlib import resources
+ import collections
+ import jsonschema  # type: ignore
+ import os.path
+@@ -126,7 +126,7 @@
+ # validate as well as a schema short ID.
+ class _SchemaValidator:
+     def __init__(self, subdirs: Iterable[str]):
+-        schemas_dir = pkg_resources.resource_filename(__name__, 'schemas')
++        schemas_dir = str(resources.files(__name__) / "schemas")
+         self._store: Dict[str, str] = {}
+ 
+         for subdir in subdirs:
+@@ -350,7 +350,7 @@
+         self._include_dirs = copy.copy(include_dirs)
+ 
+         if with_pkg_include_dir:
+-            self._include_dirs.append(pkg_resources.resource_filename(__name__, f'include/{major_version}'))
++            self._include_dirs.append(str(resources.files(__name__) / f"include/{major_version}"))
+ 
+         self._ignore_include_not_found = ignore_include_not_found
+         self._include_stack: List[str] = []
