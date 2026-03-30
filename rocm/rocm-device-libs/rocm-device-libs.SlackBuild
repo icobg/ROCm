@@ -16,7 +16,7 @@ cd $ROCM_BUILD_DIR/$PRGNAM
 
 LLVMNAM=llvm-project
 
-( cd $ROCM_REL_DIR/$LLVMNAM && patch -Np1 -i $CWD/../../patches/a18cc4c.patch )
+# ( cd $ROCM_REL_DIR/$LLVMNAM && patch -Np1 -i $CWD/../../patches/a18cc4c.patch )
 
 BUILD=1
 NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
