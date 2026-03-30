@@ -2,6 +2,7 @@
 
 if [[ -z "${VIRTUAL_ENV}" ]]; then
     printf "\n This module requires enabling the Python virtual environment \n"
+    printf "\n Manual installation of barectf is required; instructions are in the 3rd directory. \n"
     read
 fi
 
