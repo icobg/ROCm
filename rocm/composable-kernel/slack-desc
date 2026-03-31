@@ -6,7 +6,7 @@
 # customary to leave one space after the ':' except on otherwise blank lines.
 
                 |-----handy-ruler------------------------------------------------------|
-composablekernel: composable_kernel (High Performance Composable Kernel for AMD GPUs)
+composablekernel: composablekernel (High Performance Composable Kernel for AMD GPUs)
 composablekernel:
 composablekernel: The Composable Kernel (CK) library provides a programming model for
 composablekernel: writing performance-critical kernels for machine learning workloads
