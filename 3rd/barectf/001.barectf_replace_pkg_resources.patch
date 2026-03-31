@@ -27,3 +27,14 @@
  
          self._ignore_include_not_found = ignore_include_not_found
          self._include_stack: List[str] = []
+--- a/pyproject.toml	2023-05-17 02:38:55.000000000 +0300
++++ b/pyproject.toml	2026-03-28 17:52:34.877477343 +0200
+@@ -55,7 +55,7 @@
+ [tool.poetry.dependencies]
+ python = '>=3.6.2, <4'
+ termcolor = '^1.1'
+-pyyaml = '^5.3'
++pyyaml = '>=5.3'
+ jsonschema = '^3.2'
+ setuptools = '*'
+ jinja2 = '^3.0'
