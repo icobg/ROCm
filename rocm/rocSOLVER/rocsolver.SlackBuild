@@ -1,8 +1,5 @@
 #!/bin/bash
 
-echo "This file need to be patched /usr/share/cmake-4.2/Modules/CMakeDetermineHIPCompiler.cmake"
-echo "To be able to found HIP Compiler, but work without the patch"
-echo ""
 read -p "Require 2 hours"
 
 set -e
