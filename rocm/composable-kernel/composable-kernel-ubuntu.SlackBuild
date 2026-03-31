@@ -32,7 +32,7 @@ rm *z debian-binary
 mv opt/rocm-${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION} opt/rocm
 
 mkdir -p install
-cat $CWD/slack-desc > $ROCM_BUILD_DIR/$PRGNAM/tmp/install/slack-desk
+cat $CWD/slack-desc > $ROCM_BUILD_DIR/$PRGNAM/tmp/install/slack-desc
 
 makepkg -l y -c n $OUTPUT/$PRGNAM-$ROCM_MAJOR_VERSION.$ROCM_MINOR_VERSION.$ROCM_PATCH_VERSION-$ARCH-${BUILD}$TAG.txz
 
