@@ -14,7 +14,7 @@ export ROCM_BUILD_DIR=/usr/local/src/rocm/rocm-build/build
 export ROCM_LIBRARIES_DIR=$ROCM_REL_DIR/rocm-libraries/projects
 export ROCM_SYSTEMS_DIR=$ROCM_REL_DIR/rocm-systems/projects
 # Uncomment line below if you need to build ROCm with support for all devices. Home users usually don't need this enabled.
-#export AMDGPU_TARGETS="gfx803,gfx900,gfx906,gfx908,gfx90a,gfx942,gfx950,gfx1010,gfx1011,gfx1012,gfx1030,gfx1031,gfx1032,gfx1034,gfx1035,gfx1100,gfx1101,gfx1102,gfx1103,gfx1150,gfx1151,gfx1200,gfx1201"
+#export GPU_TARGETS="gfx803,gfx900,gfx906,gfx908,gfx90a,gfx942,gfx950,gfx1010,gfx1011,gfx1012,gfx1030,gfx1031,gfx1032,gfx1034,gfx1035,gfx1100,gfx1101,gfx1102,gfx1103,gfx1150,gfx1151,gfx1200,gfx1201"
 export ROCM_BRANCH=${ROCM_BRANCH:-${PKGVER}}
 ROCM_BRANCH="rocm-${ROCM_BRANCH#rocm-}"
 export LIBRARY_PATH=$ROCM_INSTALL_DIR/lib:$LIBRARY_PATH
