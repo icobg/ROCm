@@ -47,6 +47,15 @@ rocprofiler-systems
 > it is sufficient to recompile only rocmprofile-register.
 
 
+### Allow overriding ROCM_BRANCH for custom builds
+
+The upstream rocMLIR repository does not provide release tags for some versions due to lack of changes. 
+Add support for overriding ROCM_BRANCH to allow building against custom branches or commits (e.g., ROCM_BRANCH=7.2.0).
+
+```
+ROCM_BRANCH=7.2.0 ./rocmlir.SlackBuild
+```
+
 Have fun and cheers,
 Condor
 
