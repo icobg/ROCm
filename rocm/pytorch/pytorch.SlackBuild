@@ -194,6 +194,9 @@ cmake \
 "${NINJA:=ninja}" $NUMJOBS || exit 1
 DESTDIR=$PKG "$NINJA" install/strip || exit 1
 
+( cd $TMP/pytorch/torch/lib && cp $TMP/pytorch/build/lib/libtorch_global_deps.so $TMP/pytorch/torch/lib )
+( mkdir -p $TMP/pytorch/torch/bin && cp $TMP/pytorch/build/bin/torch_shm_manager $TMP/pytorch/torch/bin )
+
 mkdir -p $PKG/usr/{include,lib64}
 #mv $PKG/$TMP/pytorch/torch/lib/cmake $PKG/usr/lib64
 #rm -rf $PKG/$TMP/pytorch/torch/lib/cmake

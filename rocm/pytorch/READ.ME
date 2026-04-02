@@ -1,24 +1,15 @@
 
-Fixed PyTorch Setup Guide
+PyTorch Setup Guide
 1. Create and activate virtual environment
 
 python3 -m venv myvenv
 source myvenv/bin/activate
+
 2. Upgrade pip (recommended)
+
 pip install --upgrade pip
+
 3. Install the PyTorch wheel
+
 pip install /usr/share/pytorch/torch-2.11.0a0+git70d99e9-cp312-cp312-linux_x86_64.whl
-4. Fix missing shared libraries (symlinks)
 
-The original instructions were incorrectly structured. You should NOT create random lib and bin folders at the root of the venv — instead place symlinks inside the proper venv directories.
-
-Run:
-
-cd myvenv
-
-# Ensure target dirs exist (they already should, but just in case)
-mkdir -p {lib,bin}
-
-# Create symlinks
-ln -s /usr/lib64/libtorch_global_deps.so lib/libtorch_global_deps.so
-ln -s /usr/bin/torch_shm_manager bin/torch_shm_manager
