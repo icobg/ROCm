@@ -2,7 +2,7 @@
 
 # Slackware build script for pytorch
 
-# Copyright 2025  Condor, Bulgaria
+# Copyright 2025, 2026  Condor, Bulgaria
 # All rights reserved.
 #
 # Redistribution and use of this script, with or without modification, is
@@ -36,7 +36,7 @@ set -e
 cd $(dirname $0) ; CWD=$(pwd)
 
 PRGNAM=pytorch
-VERSION=${VERSION:-2.10}
+VERSION=${VERSION:-2.11}
 PYTORCH_BRANCH=release/$VERSION
 BUILD=${BUILD:-1}
 TAG=${TAG:-condor}
@@ -194,11 +194,11 @@ cmake \
 "${NINJA:=ninja}" $NUMJOBS || exit 1
 DESTDIR=$PKG "$NINJA" install/strip || exit 1
 
-mkdir -p $PKG/usr
-mv $PKG/$TMP/pytorch/torch/lib/cmake $PKG/usr/lib64
-rm -rf $PKG/$TMP/pytorch/torch/lib/cmake
-mv $PKG/$TMP/pytorch/torch/lib/* $PKG/usr/lib64
-mv $PKG/$TMP/pytorch/torch/include $PKG/usr
+mkdir -p $PKG/usr/{include,lib64}
+#mv $PKG/$TMP/pytorch/torch/lib/cmake $PKG/usr/lib64
+#rm -rf $PKG/$TMP/pytorch/torch/lib/cmake
+#mv $PKG/$TMP/pytorch/torch/lib/* $PKG/usr/lib64
+#mv $PKG/$TMP/pytorch/torch/include $PKG/usr
 mv $PKG/$PKG/usr/bin $PKG/usr
 mv $PKG/$PKG/usr/include/* $PKG/usr/include
 mv $PKG/$PKG/usr/lib/* $PKG/usr/lib64
@@ -209,8 +209,8 @@ echo $first_dir $TMP $PKG
 rm -rf $PKG/$first_dir
 sed -i "s|$PKG||g" $PKG/usr/share/cmake/ATen/ATenConfig.cmake
 #echo "${PKG}/usr/share/cmake/ATen/ATenConfig.cmake"
-mv $PKG/usr/lib64/aotriton $PKG/usr/lib64/cmake
-sed -i "s|$TMP/pytorch/torch/lib/|\${_IMPORT_PREFIX}/lib64/|g" $PKG/usr/lib64/cmake/aotriton/aotriton-targets-release.cmake
+#mv $PKG/usr/lib64/aotriton $PKG/usr/lib64/cmake
+#sed -i "s|$TMP/pytorch/torch/lib/|\${_IMPORT_PREFIX}/lib64/|g" $PKG/usr/lib64/cmake/aotriton/aotriton-targets-release.cmake
 cd ..
 
 python3 setup.py bdist_wheel
@@ -222,19 +222,19 @@ wheels=(dist/*.whl)
 
 #deactivate
 
-if (( ${#wheels[@]} )); then
-  pip install "${wheels[@]}" --root="$PKG" --prefix=/usr
-fi
+#if (( ${#wheels[@]} )); then
+#  pip install "${wheels[@]}" --root="$PKG" --prefix=/usr
+#fi
 
-PY_VER=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+#PY_VER=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
 
-mkdir -p $PKG/usr/lib64/python$PY_VER/site-packages/torch/{lib,bin}
-( cd "$PKG/usr/lib64/python$PY_VER/site-packages/torch/lib" || exit
-  ln -sf "/usr/lib$LIBDIRSUFFIX/libtorch_global_deps.so" libtorch_global_deps.so
-)
-( cd "$PKG/usr/lib64/python$PY_VER/site-packages/torch/bin" || exit
-  ln -sf "/usr/bin/torch_shm_manager" torch_shm_manager
-)
+#mkdir -p $PKG/usr/lib64/python$PY_VER/site-packages/torch/{lib,bin}
+#( cd "$PKG/usr/lib64/python$PY_VER/site-packages/torch/lib" || exit
+#  ln -sf "/usr/lib$LIBDIRSUFFIX/libtorch_global_deps.so" libtorch_global_deps.so
+#)
+#( cd "$PKG/usr/lib64/python$PY_VER/site-packages/torch/bin" || exit
+#  ln -sf "/usr/bin/torch_shm_manager" torch_shm_manager
+#)
 
 find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
   | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
@@ -243,6 +243,8 @@ mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
 cp -a LICENSE NOTICE *.md $PKG/usr/doc/$PRGNAM-$VERSION
 cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
 cat $CWD/READ.ME > $PKG/usr/doc/$PRGNAM-$VERSION/READ.ME
+mkdir -p $PKG/usr/share/$PRGNAM
+cp dist/*.whl $PKG/usr/share/$PRGNAM
 
 mkdir -p $PKG/install
 cat $CWD/slack-desc > $PKG/install/slack-desc
