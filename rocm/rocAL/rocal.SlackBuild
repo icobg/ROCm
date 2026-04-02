@@ -1,6 +1,6 @@
 #!/bin/bash
 
-read -p "Require Tencent version of RapidJSON and pybind11 which exists on ixip.net"
+read -p "Require Tencent version of RapidJSON which exist on ixip.net"
 
 set -e
 
@@ -37,8 +37,6 @@ cmake \
     -D CMAKE_INSTALL_PREFIX=${ROCM_INSTALL_DIR} \
     -D CMAKE_CXX_COMPILER=/opt/rocm/bin/amdclang++ \
     -D BUILD_TESTING=OFF \
-    -D BUILD_PYTHON=ON \
-    -D PYTHON_EXECUTABLE=$(which python3) \
     -D OpenMP_C_FLAGS="-fopenmp -Wno-unused-command-line-argument" \
     -D OpenMP_C_LIB_NAMES="libomp;libgomp;libiomp5" \
     -D OpenMP_CXX_FLAGS="-fopenmp -Wno-unused-command-line-argument" \
