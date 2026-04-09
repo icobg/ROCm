@@ -1,0 +1,67 @@
+#!/bin/bash
+
+set -e
+
+read -p "It takes 1 day to complete compilation\n"
+
+if [[ -z "${VIRTUAL_ENV}" ]]; then
+    printf "\n This module requires enabling the Python virtual environment \n"
+    read
+fi
+
+CWD=$(pwd)
+source $CWD/../../rocm-environment.sh
+export PYTORCH_ROCM_ARCH=${AMDGPU_TARGETS}
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) - 1) "}
+PRGNAM=AOTriton
+VER=0.11.2b
+cd $ROCM_REL_DIR
+
+if [ -d $ROCM_REL_DIR/$PRGNAM ]; then
+    ( cd $ROCM_REL_DIR/$PRGNAM &&
+    git fetch --all --tags &&
+    git reset --hard HEAD &&
+    git clean -ffdx &&
+    git checkout ${VER} &&
+    git submodule sync --recursive &&
+    git submodule update --init --recursive )
+else
+    ( cd $ROCM_REL_DIR/$PRGNAM && git clone -j 4 --branch ${VER} https://github.com/ROCm/${PRGNAM}.git )
+fi
+
+#cd $ROCM_REL_DIR/$PRGNAM
+#pip install -r requirements.txt
+
+rm -rf $ROCM_BUILD_DIR/$PRGNAM
+mkdir -p $ROCM_BUILD_DIR/$PRGNAM
+cd $ROCM_BUILD_DIR/$PRGNAM
+
+DEST=$OUTPUT/package-$PRGNAM
+
+NUMJOBS=${NUMJOBS:-" -j$(expr $(nproc) + 1) "}
+BUILD=1
+
+pushd .
+
+cmake \
+    -Wno-dev \
+    -G Ninja \
+    -D CMAKE_CXX_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang++ \
+    -D CMAKE_C_COMPILER=${ROCM_INSTALL_DIR}/bin/amdclang \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_PREFIX_PATH=${ROCM_INSTALL_DIR}/lib/llvm/lib/cmake \
+    -D PYTORCH_ROCM_ARCH=${AMDGPU_TARGETS} \
+    -D CMAKE_INSTALL_PREFIX=/usr \
+    $ROCM_REL_DIR/$PRGNAM
+
+"${NINJA:=ninja}" $NUMJOBS || exit 1
+DESTDIR=$DEST "${NINJA:=ninja}" $NUMJOBS install/strip || exit 1
+
+mkdir -p $DEST/install
+cat $CWD/slack-desc > $DEST/install/slack-desc
+
+cd $DEST
+makepkg -l y -c n $OUTPUT/$PRGNAM-$PKGVER-$ARCH-${BUILD}$TAG.txz
+
+popd
