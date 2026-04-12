@@ -2,7 +2,7 @@
 
 set -e
 
-read -p "It takes 1 day to complete compilation\n"
+read -p "It takes 1 day to complete compilation..."
 
 if [[ -z "${VIRTUAL_ENV}" ]]; then
     printf "\n This module requires enabling the Python virtual environment \n"
